@@ -141,8 +141,11 @@ packages.
 ## Install or upgrade
 
 For an upgrade, stop the companion and include every currently installed
-exact-revision split package in one transaction. An upgrade of the complete
-three-package set is:
+exact-revision split package in one transaction. When makepkg's `debug` option
+is enabled, it automatically emits the optional `soundtouch-pipewire-debug`
+package; this generated package is not a third declared `pkgname` in
+`.SRCINFO`. An upgrade of the complete three-package set actually installed for
+this release is:
 
 ```sh
 systemctl --user stop soundtouch-pipewire.service
@@ -267,12 +270,14 @@ discovery.
 systemctl --user disable --now soundtouch-pipewire.service
 ```
 
-The controller can be removed independently. Removing the service package first
-requires removing its exact-revision controller dependency. Uninstalling both
-packages removes only the controller, companion, two private modules, desktop
-metadata, and packaged documentation. Per-user configuration, acceptance, and
-cache remain available for manual inspection/removal. The official PipeWire
-module and zeroconf package are untouched.
+The controller and optional generated debug package can be removed
+independently. Removing the service package first requires removing its
+exact-revision controller dependency. Uninstalling every installed member of
+the set removes only the controller, companion, detached debug symbols, two
+private modules, desktop metadata, and packaged documentation. Per-user
+configuration, acceptance, and cache remain available for manual
+inspection/removal. The official PipeWire module and zeroconf package are
+untouched.
 
 Returning to stock RAOP discovery is a separate, explicitly authorized
 recovery operation. After stopping the companion, replace `raop-discover.conf`
