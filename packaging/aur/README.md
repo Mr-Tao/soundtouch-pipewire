@@ -1,6 +1,7 @@
 # Arch/AUR packaging
 
-Status: **v0.1.0 published as AUR package release 0.1.0-64**.
+Status: **v0.1.0 published as AUR package release 0.1.0-64; real-desktop
+acceptance pending a fresh-login check**.
 
 Real-desktop upgrades follow the
 [`public package acceptance contract`](../../docs/public-package-acceptance-contract.md).
@@ -13,7 +14,8 @@ overwrite files owned by `pipewire`, `pipewire-zeroconf`, or
 ## Installed layout
 
 `soundtouch-pipewire` contains the persistent multi-receiver v2 service, the
-frozen v1 command for rollback/debugging, and audio integration:
+frozen v1 command for explicitly authorized recovery/debugging, and audio
+integration:
 
 - `/usr/bin/soundtouch-pipewire`
 - `/usr/share/dbus-1/interfaces/io.github.Mr_Tao.SoundTouchPipeWire1.xml`
@@ -100,9 +102,9 @@ license source, updates checksums, and regenerates `.SRCINFO`. Root
 fixed tar timestamps and a tree-object export prevent packaging-only commits
 from changing its bytes. `prepare()` fetches the locked Cargo dependency graph;
 the later build and tests force Cargo offline so a missing dependency fails
-instead of silently reaching the network. The environment override permits a
-local release-candidate build while the explicit public-release gate remains
-closed.
+instead of silently reaching the network. The environment override permits an
+explicitly local build when a checkout is not marked `READY`; it must never be
+used to publish that candidate.
 
 The package `check()` function runs every Meson suite through
 `tools/run-meson-tests-clean-env.sh`. The helper starts Meson with an
@@ -135,6 +137,26 @@ namcap PKGBUILD \
 Confirm that `Provides`, `Conflicts With`, and `Replaces` are all `None` and
 that the three file lists do not overlap each other or the official PipeWire
 packages.
+
+## Install or upgrade
+
+For an upgrade, stop the companion and include every currently installed
+exact-revision split package in one transaction. An upgrade of the complete
+three-package set is:
+
+```sh
+systemctl --user stop soundtouch-pipewire.service
+sudo pacman -U \
+  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.0-64-x86_64.pkg.tar.zst
+```
+
+For a first installation, omit the stop command and omit an optional split
+package only when it was not selected.
+
+For a real-desktop upgrade, retain the preceding complete set and follow the
+public package acceptance contract before restarting the service.
 
 The private PipeWire build explicitly enables Avahi because the DACP callback
 listener announces an authenticated `_dacp._tcp` service for each active RAOP
@@ -227,14 +249,19 @@ The optional controller package is retained only for frozen v1 development.
 When `service-v2` is active, its expected “daemon is not running” warning does
 not indicate a failure of the audio service.
 
-```sh
-sudo pacman -U \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst
-soundtouch-pipewire-control
-```
+## Package rollback
 
-## Rollback
+Follow the public package acceptance contract: stop the companion, reinstall
+the retained complete preceding split-package set in one transaction, and
+restore the service enablement and running state observed before the
+transition. If the installed acceptance record does not match the reinstalled
+supplement, show those terms and require that user to accept them again before
+any start. Start the preceding `service-v2` at most once only if it was
+previously running; otherwise keep it stopped and verify that its process and
+objects remain absent. Do not automatically start v1 or restore stock RAOP
+discovery.
+
+## Uninstall and optional stock-RAOP recovery
 
 ```sh
 systemctl --user disable --now soundtouch-pipewire.service
@@ -245,10 +272,13 @@ requires removing its exact-revision controller dependency. Uninstalling both
 packages removes only the controller, companion, two private modules, desktop
 metadata, and packaged documentation. Per-user configuration, acceptance, and
 cache remain available for manual inspection/removal. The official PipeWire
-module and zeroconf package are untouched. To restore the previous discovery
-behavior, stop the companion, replace `raop-discover.conf` with the timestamped
-backup created by `migrate-stock-discovery --apply`, and restart
-`pipewire.service`.
+module and zeroconf package are untouched.
+
+Returning to stock RAOP discovery is a separate, explicitly authorized
+recovery operation. After stopping the companion, replace `raop-discover.conf`
+with the timestamped backup created by `migrate-stock-discovery --apply`, then
+restart `pipewire.service`, `pipewire-pulse.service`, and
+`wireplumber.service`.
 
 ## AUR release
 

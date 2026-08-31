@@ -68,8 +68,8 @@ canary criteria are defined in
 A changed endpoint is not adopted while the output is published; restart the
 manual canary to validate and use a new receiver address.
 
-Persistent multi-receiver ownership, discovery recovery, packaging cutover,
-and rollback are defined in
+Persistent multi-receiver ownership, discovery recovery, and runtime recovery
+boundaries are defined in
 [`docs/v2-service-contract.md`](docs/v2-service-contract.md). The legacy D-Bus
 controller, zones, stereo pairs, MPRIS router, and virtual-zone operations are
 not connected to `service-v2`; PipeWire Device Routes are its supported control
@@ -77,8 +77,8 @@ surface.
 
 Installing a published build on a real desktop is governed separately by the
 [`public package acceptance contract`](docs/public-package-acceptance-contract.md).
-It keeps distribution, rollback, and ordinary-session evidence out of the v2
-runtime state-machine contracts.
+It governs distribution, package transition and rollback, and ordinary-session
+evidence; those concerns remain outside the v2 runtime state-machine contracts.
 
 The legacy `status` command and GTK controller do not describe `service-v2`.
 On startup, after exclusive-lock acquisition, v2 removes any stale v1 runtime

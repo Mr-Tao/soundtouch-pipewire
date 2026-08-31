@@ -24,7 +24,7 @@ serialization, volume state, Device, Route, Node, and RAOP session. There is no
 shared volume queue and no cross-receiver corrective or topology authority.
 
 The installed systemd unit starts `service-v2` only. The legacy `daemon`
-command remains a frozen rollback/debug entry point, cannot run concurrently
+command remains a frozen recovery/debug entry point, cannot run concurrently
 because of the shared lock, and is not an automatic fallback.
 
 ## Admission and configuration
@@ -134,7 +134,13 @@ Production cutover requires all of the following:
 
 ## Rollback
 
-Stop `service-v2`, verify that its process, lock, and public objects are gone,
-restore the previous package and unit, then start the frozen v1 daemon. Verify
-receiver state and sink availability after rollback. Never start v1 beside an
-active v2 process.
+Rollback of a published package follows the
+[`public package acceptance contract`](public-package-acceptance-contract.md):
+stop `service-v2`, verify that its process, lock, and public objects are gone,
+reinstall the complete preceding `service-v2` split-package set, handle any
+supplement acceptance mismatch explicitly, restore the preceding enablement
+and running state, and conditionally verify either receiver state and sink
+availability for a previously running service or absence of its process and
+objects for a previously stopped service. Starting the frozen v1 daemon or
+restoring stock RAOP discovery is a separate, explicitly authorized recovery
+operation and is never an automatic package fallback.

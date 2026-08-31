@@ -8,6 +8,7 @@ post_install() {
 
 post_upgrade() {
   printf '%s\n' \
-    'Restart the already-running user service in each active desktop session to load the new service-v2 process:' \
-    '  systemctl --user restart soundtouch-pipewire.service'
+    'Do not treat the package transaction as runtime acceptance or immediately restart an old desktop session.' \
+    'In each active desktop session, review any changed installed supplement and follow the public package acceptance contract before starting service-v2:' \
+    '  https://github.com/Mr-Tao/soundtouch-pipewire/blob/main/docs/public-package-acceptance-contract.md'
 }
