@@ -34,14 +34,15 @@ private PipeWire modules described in
 packaged together: the RAOP module is a hard runtime dependency, and the zone
 module is required whenever a virtual zone sink is published.
 
-Saved SoundTouch zones, SoundTouch 10 stereo pairs, the versioned D-Bus
-control API, and the optional Rust/GTK 4 controller are described in
-[`docs/multiroom-control.md`](docs/multiroom-control.md). Build the controller
-with `-Dcontrol_app=enabled`. It is disabled by default so headless package
-builds do not acquire an undeclared Cargo/GTK dependency. The Arch packaging
-enables it explicitly and emits a separate `soundtouch-pipewire-control`
-binary package with an exact dependency on the matching service package
-revision. The controller itself remains a frozen v1 tool.
+The frozen v1 multiroom, stereo-pair, and topology-control design is described
+in [`docs/multiroom-control.md`](docs/multiroom-control.md). The current
+Rust/GTK 4 desktop client instead follows the read-only v2 status API and
+writes explicit volume or mute intent only through the matching standard
+PipeWire Device Route. Build it with `-Dcontrol_app=enabled`. It is disabled by
+default so headless builds do not acquire Cargo/GTK/WirePlumber dependencies.
+The Arch packaging enables it explicitly and emits a separate
+`soundtouch-pipewire-control` binary package with an exact dependency on the
+matching service package revision.
 
 ## Persistent direct-output v2 service
 
@@ -70,21 +71,22 @@ manual canary to validate and use a new receiver address.
 
 Persistent multi-receiver ownership, discovery recovery, packaging cutover,
 and rollback are defined in
-[`docs/v2-service-contract.md`](docs/v2-service-contract.md). The legacy D-Bus
-controller, zones, stereo pairs, MPRIS router, and virtual-zone operations are
-not connected to `service-v2`; PipeWire Device Routes are its supported control
-surface.
+[`docs/v2-service-contract.md`](docs/v2-service-contract.md). The legacy v1
+D-Bus mutation API, zones, stereo pairs, MPRIS router, and virtual-zone
+operations are not connected to `service-v2`; PipeWire Device Routes are its
+supported control surface.
 
-The separately versioned read-only v2 status API and planned Rust/GTK 4
+The separately versioned read-only v2 status API and Rust/GTK 4
 StatusNotifierItem client are governed by the
 [`v2 desktop indicator contract`](docs/v2-indicator-contract.md). Its volume
 and mute controls write only the standard Device Route; optimistic state is a
 bounded client-local presentation and never becomes service, D-Bus, Route, or
 Node current state.
 
-The legacy `status` command and GTK controller do not describe `service-v2`.
-On startup, after exclusive-lock acquisition, v2 removes any stale v1 runtime
-status so those tools fail unavailable instead of reporting obsolete state.
+The legacy `status` command does not describe `service-v2`. On startup, after
+exclusive-lock acquisition, v2 removes any stale v1 runtime status so that
+command fails unavailable instead of reporting obsolete state. The current
+GTK client does not read that file or the v1 D-Bus API.
 
 ## Legacy v1 safety model (frozen reference)
 
@@ -146,17 +148,13 @@ explicit block still wins. The event channel is connected after publication.
 “Verified” here means that live technical identity proof, not a remembered
 user approval.
 
-The legacy GTK controller can edit the global mode and each receiver's
-three-state policy only through the frozen v1 daemon. It is not a control plane
-for `service-v2`. V1 writes use the exact on-disk configuration digest,
-preserve unrelated keys and comments, and fail on a stale digest. A successful
-write changes only the configured policy: the effective daemon policy and
-published sinks remain unchanged until the service is restarted. GUI writes
-are disabled when the daemon was started with an explicit `--config`, even if
-that file is otherwise writable. `soundtouch-pipewire doctor` reports the
-effective mode, config path, and section counts; it can also run while the
-daemon is active without mistaking that daemon's own private nodes for a
-second unsafe instance.
+The frozen v1 D-Bus implementation retains historical configuration-mutation
+methods, but the installed GTK client does not expose or call them and is not a
+configuration control plane for `service-v2`. Edit the configuration file
+directly and restart the service when changing admission policy.
+`soundtouch-pipewire doctor` reports the effective mode, config path, and
+section counts; it can also run while the daemon is active without mistaking
+that daemon's own private nodes for a second unsafe instance.
 Each device may set `raop-latency-ms`. Its default is `1500`; accepted values
 are `250` through `10000`. PipeWire adds a fixed 250 ms transport margin, so
 the default appears as roughly 1750 ms of process latency. Reducing the value

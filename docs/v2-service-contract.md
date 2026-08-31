@@ -89,11 +89,12 @@ mirror and a Route-only GTK client are permitted only under the
 [`v2 desktop indicator contract`](v2-indicator-contract.md); neither is a
 second control or confirmed-state authority.
 
-The v1 D-Bus control API, GTK controller operations, MPRIS router, SoundTouch
-zones, stereo-pair orchestration, and virtual-zone module are not connected to
-`service-v2`. Their code and optional package remain frozen references; a GUI
-warning that the legacy daemon is absent is not evidence that `service-v2`
-failed. They must not be silently reintroduced as a second authority.
+The v1 D-Bus mutation API and its topology-controller operations, MPRIS router,
+SoundTouch zones, stereo-pair orchestration, and virtual-zone module are not
+connected to `service-v2`. Their code remains a frozen reference and must not
+be silently reintroduced as a second authority. The optional desktop package
+contains only the separately contracted read-only v2 status client and
+Route-only explicit volume/mute controls.
 
 After acquiring the shared instance lock, `service-v2` removes the frozen v1
 runtime-status file. No v1 process can still own it at that point. The legacy

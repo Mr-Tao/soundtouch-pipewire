@@ -2,18 +2,20 @@
 name = "soundtouch-pipewire-control"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.92"
 license = "MIT"
 publish = false
-description = "GTK controller for soundtouch-pipewire"
+description = "GTK status and Route controller for soundtouch-pipewire v2"
 
 [dependencies]
 gettext-rs = { version = "0.7", features = ["gettext-system"] }
-gio = "0.21"
-glib = "0.21"
-gtk = { package = "gtk4", version = "0.10", features = ["v4_12"] }
+gio = "0.22"
+glib = "0.22"
+gtk = { package = "gtk4", version = "0.11", features = ["v4_12"] }
+wireplumber = { git = "https://github.com/Mr-Tao/wireplumber.rs.git", rev = "bde1f69e8220dcfaaa9287b93f60467f78a9f9df", default-features = false, features = ["v0_5"] }
 
 [build-dependencies]
-glib-build-tools = "0.21"
+glib-build-tools = "0.22"
 
 [profile.release]
 lto = "thin"

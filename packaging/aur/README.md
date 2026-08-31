@@ -1,6 +1,7 @@
 # Arch/AUR packaging
 
-Status: **validated release candidate for v0.1.0 publication**.
+Status: **v0.1.0-65 desktop-integration candidate; complete package and live
+desktop validation is required before publication**.
 
 The split package coexists with the official Arch packages. Both binary
 packages have empty `provides`, `conflicts`, and `replaces` arrays and do not
@@ -14,6 +15,7 @@ frozen v1 command for rollback/debugging, and audio integration:
 
 - `/usr/bin/soundtouch-pipewire`
 - `/usr/share/dbus-1/interfaces/io.github.Mr_Tao.SoundTouchPipeWire1.xml`
+- `/usr/share/dbus-1/interfaces/io.github.Mr_Tao.SoundTouchPipeWire2.xml`
 - `/usr/lib/soundtouch-pipewire/pipewire-0.3/libpipewire-module-soundtouch-raop-sink.so`
 - `/usr/lib/soundtouch-pipewire/pipewire-0.3/libpipewire-module-soundtouch-zone-sink.so`
 - `/usr/lib/systemd/user/soundtouch-pipewire.service`
@@ -21,8 +23,9 @@ frozen v1 command for rollback/debugging, and audio integration:
 - `/usr/share/licenses/soundtouch-pipewire/`
 
 `soundtouch-pipewire-control` depends on that exact service package revision
-and contains the frozen optional GTK controller for the v1 D-Bus control plane.
-It is not a controller for the installed `service-v2` process:
+and contains the v2 GTK StatusNotifierItem client. It reads the service's
+read-only status API and submits explicit volume/mute changes only through the
+matching standard PipeWire Device Route:
 
 - `/usr/bin/soundtouch-pipewire-control`
 - `/usr/share/applications/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop`
@@ -30,6 +33,7 @@ It is not a controller for the installed `service-v2` process:
 - `/usr/share/icons/hicolor/scalable/apps/io.github.Mr_Tao.SoundTouchPipeWire.Control.svg`
 - `/usr/share/locale/cs/LC_MESSAGES/soundtouch-pipewire-control.mo`
 - `/usr/share/licenses/soundtouch-pipewire-control/`
+- `/etc/xdg/autostart/io.github.Mr_Tao.SoundTouchPipeWire.Control-autostart.desktop`
 
 The user unit sets `PIPEWIRE_MODULE_DIR` only for the companion process:
 
@@ -120,13 +124,13 @@ Before installing, inspect the package:
 
 ```sh
 pacman -Qip \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-64-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.0-65-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-65-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.0-65-x86_64.pkg.tar.zst
 namcap PKGBUILD \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-64-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.0-65-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-65-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.0-65-x86_64.pkg.tar.zst
 ```
 
 Confirm that `Provides`, `Conflicts With`, and `Replaces` are all `None` and
@@ -219,14 +223,16 @@ latency, not volume authority.
 systemctl --user enable --now soundtouch-pipewire.service
 ```
 
-The optional controller package is retained only for frozen v1 development.
-When `service-v2` is active, its expected “daemon is not running” warning does
-not indicate a failure of the audio service.
+The optional desktop package starts its indicator through XDG autostart. Close
+hides its window; **Quit** exits only the client. It does not activate, stop, or
+restart the backend over D-Bus. To disable autostart for one user, place a
+same-named desktop file with `Hidden=true` in that user's XDG autostart
+directory.
 
 ```sh
 sudo pacman -U \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.0-65-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-65-x86_64.pkg.tar.zst
 soundtouch-pipewire-control
 ```
 

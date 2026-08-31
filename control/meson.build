@@ -4,6 +4,7 @@
 dependency('gtk4', version: '>=4.12')
 dependency('gio-2.0', version: '>=2.74')
 dependency('glib-2.0', version: '>=2.74')
+dependency('wireplumber-0.5', version: '>=0.5')
 
 cargo = find_program('cargo', required: true)
 sh = find_program('sh', required: true)
@@ -24,8 +25,11 @@ control_cargo_inputs = files(
   'src/i18n.rs',
   'src/lib.rs',
   'src/main.rs',
-  'src/mixer.rs',
   'src/model.rs',
+  'src/notifications.rs',
+  'src/optimistic.rs',
+  'src/pipewire.rs',
+  'src/sni.rs',
   'tools/meson-cargo-build.sh',
 )
 
@@ -56,6 +60,15 @@ i18n.merge_file(
   type: 'desktop',
   install: true,
   install_dir: get_option('datadir') / 'applications',
+  install_tag: 'soundtouch-pipewire-control',
+)
+i18n.merge_file(
+  input: 'data/io.github.Mr_Tao.SoundTouchPipeWire.Control-autostart.desktop',
+  output: 'io.github.Mr_Tao.SoundTouchPipeWire.Control-autostart.desktop',
+  po_dir: 'po',
+  type: 'desktop',
+  install: true,
+  install_dir: get_option('sysconfdir') / 'xdg/autostart',
   install_tag: 'soundtouch-pipewire-control',
 )
 i18n.merge_file(

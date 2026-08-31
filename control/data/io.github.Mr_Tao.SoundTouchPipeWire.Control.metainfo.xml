@@ -6,17 +6,17 @@
   <developer id="mr-tao.github.io">
     <name>SoundTouch PipeWire contributors</name>
   </developer>
-  <name>SoundTouch Controller</name>
-  <summary>Manage SoundTouch speakers connected through PipeWire</summary>
+  <name>SoundTouch Volume</name>
+  <summary>View and control SoundTouch receiver volume through PipeWire</summary>
   <description>
     <p>
-      SoundTouch Controller displays speakers, saved multiroom zones, stereo
-      pairs, observed hardware topology, and recent operations provided by the
-      soundtouch-pipewire companion daemon.
+      SoundTouch Volume displays confirmed volume, mute, and health for
+      receivers published by the soundtouch-pipewire v2 service.
     </p>
     <p>
-      It follows the daemon over a versioned session D-Bus API and can open a
-      general PipeWire mixer for ordinary stream and volume controls.
+      It provides a StatusNotifierItem and an accessible compact GTK window.
+      Explicit changes use only the matching standard PipeWire Device Route;
+      the service remains the source of confirmed receiver state.
     </p>
   </description>
   <url type="homepage">https://github.com/Mr-Tao/soundtouch-pipewire</url>

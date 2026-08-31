@@ -4,8 +4,8 @@ Status: design gate for the first v2 implementation slice.
 
 This contract deliberately replaces the v1 direct-output recovery model. The
 v1 daemon, private gate/source-marker protocol, topology coordinator, MPRIS
-router, controller operations, and packaging remain frozen references; they
-are not prerequisites for this slice.
+router, and v1 controller operations remain frozen references; they are not
+prerequisites for this slice.
 
 ## Scope
 

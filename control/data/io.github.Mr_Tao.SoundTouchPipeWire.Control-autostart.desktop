@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SoundTouch Volume Indicator
+Comment=Show SoundTouch receiver status and volume controls
+Exec=soundtouch-pipewire-control --background
+Icon=io.github.Mr_Tao.SoundTouchPipeWire.Control
+Terminal=false
+Categories=AudioVideo;Audio;GTK;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

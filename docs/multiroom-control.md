@@ -1,5 +1,9 @@
 # Multiroom and stereo control
 
+Status: frozen v1 design reference. Its GTK runtime is no longer shipped by
+the optional control package; the current desktop client is defined by
+[`v2-indicator-contract.md`](v2-indicator-contract.md).
+
 The multiroom control plane is deliberately separate from PipeWire's ordinary
 volume and stream-routing interfaces. PipeWire represents audio nodes and
 links; Bose zones and SoundTouch 10 LEFT/RIGHT groups are receiver state. The

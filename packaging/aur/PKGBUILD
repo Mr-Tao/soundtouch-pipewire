@@ -6,7 +6,7 @@ pkgname=(
   'soundtouch-pipewire-control'
 )
 pkgver=0.1.0
-pkgrel=64
+pkgrel=65
 arch=('x86_64')
 url='https://github.com/Mr-Tao/soundtouch-pipewire'
 license=('MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1')
@@ -49,13 +49,13 @@ makedepends=(
   "pipewire-audio=${_pipewire_pkgver}"
   'pkgconf'
   'rust'
+  'wireplumber>=0.5.15'
 )
 checkdepends=(
   'appstream'
   'desktop-file-utils'
   'libpulse'
   "pipewire-pulse=${_pipewire_pkgver}"
-  'wireplumber>=0.5.15'
 )
 provides=()
 conflicts=()
@@ -230,6 +230,8 @@ check() {
 
   desktop-file-validate \
     build-companion/control/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop
+  desktop-file-validate \
+    build-companion/control/io.github.Mr_Tao.SoundTouchPipeWire.Control-autostart.desktop
   appstreamcli validate --no-net \
     build-companion/control/io.github.Mr_Tao.SoundTouchPipeWire.Control.metainfo.xml
 }
@@ -240,7 +242,7 @@ package_soundtouch-pipewire() {
   install='soundtouch-pipewire.install'
   depends=("${_daemon_depends[@]}")
   optdepends=(
-    'soundtouch-pipewire-control: frozen v1 GTK controller (not used by service-v2)'
+    'soundtouch-pipewire-control: v2 GTK status and hardware-volume client'
   )
 
   _assert_release_gate
@@ -279,7 +281,7 @@ package_soundtouch-pipewire() {
 }
 
 package_soundtouch-pipewire-control() {
-  pkgdesc='Frozen v1 GTK controller for SoundTouch receiver and zone operations'
+  pkgdesc='GTK status and hardware-volume client for SoundTouch PipeWire outputs'
   license=('MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1')
   depends=(
     "soundtouch-pipewire=${pkgver}-${pkgrel}"
@@ -288,11 +290,7 @@ package_soundtouch-pipewire-control() {
     'gtk4'
     'hicolor-icon-theme'
     'libgcc'
-  )
-  optdepends=(
-    'pwvucontrol: native PipeWire mixer'
-    'pavucontrol: graphical PulseAudio-compatible mixer'
-    'wiremix: terminal PipeWire mixer (requires a supported terminal emulator)'
+    'wireplumber>=0.5.15'
   )
 
   _assert_release_gate
