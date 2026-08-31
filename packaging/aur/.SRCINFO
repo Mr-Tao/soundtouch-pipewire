@@ -9,6 +9,7 @@ pkgbase = soundtouch-pipewire
 	checkdepends = libpulse
 	checkdepends = pipewire-pulse=1:1.6.8
 	makedepends = avahi
+	makedepends = clang
 	makedepends = gettext
 	makedepends = glib2
 	makedepends = glib2-devel

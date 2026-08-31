@@ -32,6 +32,7 @@ _daemon_depends=(
 )
 makedepends=(
   'avahi'
+  'clang'
   'gettext'
   'glib2'
   'glib2-devel'
