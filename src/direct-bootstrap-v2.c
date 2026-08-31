@@ -35,6 +35,9 @@ struct _StpwDirectBootstrapV2 {
   StpwDirectBootstrapV2StateFunc state_func;
   gpointer state_data;
   GDestroyNotify state_destroy;
+  StpwDirectBootstrapV2StatusFunc status_func;
+  gpointer status_data;
+  GDestroyNotify status_destroy;
   gchar *detail;
   gboolean disposed;
 };
@@ -451,6 +454,20 @@ static void output_health_cb(StpwDirectOutputV2 *output, gboolean degraded,
   }
 }
 
+static void output_status_cb(StpwDirectOutputV2 *output, gboolean confirmed,
+                             gpointer user_data) {
+  WeakOwner *owner = user_data;
+  StpwDirectBootstrapV2 *self = g_weak_ref_get(&owner->owner);
+
+  if (self != NULL) {
+    if (!self->disposed && self->output == output &&
+        self->machine.generation == owner->generation &&
+        self->status_func != NULL)
+      self->status_func(self, confirmed, self->status_data);
+    g_object_unref(self);
+  }
+}
+
 static const gchar *output_description(const StpwDirectBootstrapV2 *self) {
   if (string_present(self->info.name))
     return self->info.name;
@@ -466,6 +483,7 @@ static void publish_output(StpwDirectBootstrapV2 *self, guint64 generation) {
   StpwDirectOutputV2 *output;
   WeakOwner *lost_owner;
   WeakOwner *health_owner;
+  WeakOwner *status_owner;
   StpwDirectBootstrapV2Action action;
 
   if (self->endpoint == NULL || self->wapi == NULL ||
@@ -505,6 +523,9 @@ static void publish_output(StpwDirectBootstrapV2 *self, guint64 generation) {
   health_owner = weak_owner_new(self, generation);
   stpw_direct_output_v2_set_health_callback(self->output, output_health_cb,
                                             health_owner, weak_owner_free);
+  status_owner = weak_owner_new(self, generation);
+  stpw_direct_output_v2_set_status_callback(self->output, output_status_cb,
+                                            status_owner, weak_owner_free);
   execute_action(self, action);
   notify_state(self, "Direct output published; connecting receiver events");
 }
@@ -602,6 +623,8 @@ static void stpw_direct_bootstrap_v2_dispose(GObject *object) {
   StpwDirectBootstrapV2 *self = STPW_DIRECT_BOOTSTRAP_V2(object);
   GDestroyNotify state_destroy;
   gpointer state_data;
+  GDestroyNotify status_destroy;
+  gpointer status_data;
 
   if (self->disposed) {
     G_OBJECT_CLASS(stpw_direct_bootstrap_v2_parent_class)->dispose(object);
@@ -619,6 +642,13 @@ static void stpw_direct_bootstrap_v2_dispose(GObject *object) {
   self->state_destroy = NULL;
   if (state_destroy != NULL)
     state_destroy(state_data);
+  status_destroy = self->status_destroy;
+  status_data = self->status_data;
+  self->status_func = NULL;
+  self->status_data = NULL;
+  self->status_destroy = NULL;
+  if (status_destroy != NULL)
+    status_destroy(status_data);
   G_OBJECT_CLASS(stpw_direct_bootstrap_v2_parent_class)->dispose(object);
 }
 
@@ -689,4 +719,41 @@ const gchar *stpw_direct_bootstrap_v2_get_detail(StpwDirectBootstrapV2 *self) {
 gboolean stpw_direct_bootstrap_v2_has_output(StpwDirectBootstrapV2 *self) {
   g_return_val_if_fail(STPW_IS_DIRECT_BOOTSTRAP_V2(self), FALSE);
   return self->output != NULL;
+}
+
+void stpw_direct_bootstrap_v2_set_status_callback(
+    StpwDirectBootstrapV2 *self, StpwDirectBootstrapV2StatusFunc status,
+    gpointer status_data, GDestroyNotify status_destroy) {
+  GDestroyNotify old_destroy;
+  gpointer old_data;
+
+  g_return_if_fail(STPW_IS_DIRECT_BOOTSTRAP_V2(self));
+  old_destroy = self->status_destroy;
+  old_data = self->status_data;
+  self->status_func = status;
+  self->status_data = status_data;
+  self->status_destroy = status_destroy;
+  if (old_destroy != NULL)
+    old_destroy(old_data);
+}
+
+gboolean stpw_direct_bootstrap_v2_get_status(
+    StpwDirectBootstrapV2 *self, StpwDirectBootstrapV2Status *status) {
+  g_return_val_if_fail(STPW_IS_DIRECT_BOOTSTRAP_V2(self), FALSE);
+  g_return_val_if_fail(status != NULL, FALSE);
+  if (self->output == NULL || !bootstrap_state_is_published(self->machine.state))
+    return FALSE;
+  *status = (StpwDirectBootstrapV2Status){
+      .device_id = self->selected_device_id,
+      .display_name = output_description(self),
+      .pipewire_device_name =
+          stpw_direct_output_v2_get_device_name(self->output),
+      .pipewire_node_name = stpw_direct_output_v2_get_node_name(self->output),
+      .volume = stpw_direct_output_v2_get_volume(self->output),
+      .muted = stpw_direct_output_v2_get_muted(self->output),
+      .control_available =
+          stpw_direct_output_v2_get_control_available(self->output),
+      .control_busy = stpw_direct_output_v2_get_control_busy(self->output),
+  };
+  return TRUE;
 }

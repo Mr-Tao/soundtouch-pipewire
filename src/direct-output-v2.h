@@ -18,6 +18,9 @@ typedef void (*StpwDirectOutputV2LostFunc)(StpwDirectOutputV2 *self,
 typedef void (*StpwDirectOutputV2HealthFunc)(StpwDirectOutputV2 *self,
                                              gboolean degraded,
                                              gpointer user_data);
+typedef void (*StpwDirectOutputV2StatusFunc)(StpwDirectOutputV2 *self,
+                                             gboolean confirmed,
+                                             gpointer user_data);
 
 typedef enum {
   STPW_DIRECT_OUTPUT_V2_NODE_PROPS_INVALID,
@@ -47,6 +50,21 @@ void stpw_direct_output_v2_invalidate_volume(StpwDirectOutputV2 *self);
 void stpw_direct_output_v2_set_health_callback(
     StpwDirectOutputV2 *self, StpwDirectOutputV2HealthFunc health,
     gpointer health_data, GDestroyNotify health_destroy);
+/*
+ * confirmed=TRUE is emitted only after Route publication and Node mirror
+ * scheduling for one public WAPI observation. Other calls report an
+ * observational status transition such as ControlBusy.
+ */
+void stpw_direct_output_v2_set_status_callback(
+    StpwDirectOutputV2 *self, StpwDirectOutputV2StatusFunc status,
+    gpointer status_data, GDestroyNotify status_destroy);
+const gchar *stpw_direct_output_v2_get_device_name(StpwDirectOutputV2 *self);
+const gchar *stpw_direct_output_v2_get_node_name(StpwDirectOutputV2 *self);
+guint stpw_direct_output_v2_get_volume(StpwDirectOutputV2 *self);
+gboolean stpw_direct_output_v2_get_muted(StpwDirectOutputV2 *self);
+gboolean stpw_direct_output_v2_get_control_available(
+    StpwDirectOutputV2 *self);
+gboolean stpw_direct_output_v2_get_control_busy(StpwDirectOutputV2 *self);
 
 /* Pure helpers kept visible to the focused contract test. */
 gboolean stpw_direct_output_v2_identity_matches(const StpwEndpoint *endpoint,

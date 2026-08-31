@@ -36,8 +36,22 @@ stpw_dbus_sources = gnome.gdbus_codegen(
   object_manager: true,
   install_header: false,
 )
+
+status_v2_dbus_interface = files(
+  'data/io.github.Mr_Tao.SoundTouchPipeWire2.xml',
+)
+stpw_status_v2_dbus_sources = gnome.gdbus_codegen(
+  'stpw-status-v2-dbus',
+  sources: status_v2_dbus_interface,
+  autocleanup: 'all',
+  interface_prefix: 'io.github.Mr_Tao.SoundTouchPipeWire2.',
+  namespace: 'StpwStatusV2',
+  object_manager: true,
+  install_header: false,
+)
 install_data(
   dbus_interface,
+  status_v2_dbus_interface,
   install_dir: get_option('datadir') / 'dbus-1/interfaces',
   install_tag: 'soundtouch-pipewire',
 )
@@ -96,6 +110,7 @@ stpw_core_sources = files(
   'src/direct-pw-context-v2.c',
   'src/direct-route-v2.c',
   'src/direct-service-v2-runtime.c',
+  'src/direct-status-v2.c',
   'src/direct-output-v2.c',
   'src/direct-volume-v2.c',
   'src/direct-volume-v2-wapi.c',
@@ -123,6 +138,7 @@ stpw_core = static_library(
   'stpw-core',
   stpw_core_sources,
   stpw_dbus_sources,
+  stpw_status_v2_dbus_sources,
   include_directories: stpw_inc,
   dependencies: stpw_deps,
   pic: true,

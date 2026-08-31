@@ -17,6 +17,20 @@ typedef void (*StpwDirectBootstrapV2StateFunc)(StpwDirectBootstrapV2 *self,
                                                StpwDirectBootstrapV2State state,
                                                const gchar *detail,
                                                gpointer user_data);
+typedef void (*StpwDirectBootstrapV2StatusFunc)(StpwDirectBootstrapV2 *self,
+                                                gboolean confirmed,
+                                                gpointer user_data);
+
+typedef struct {
+  const gchar *device_id;
+  const gchar *display_name;
+  const gchar *pipewire_device_name;
+  const gchar *pipewire_node_name;
+  guint volume;
+  gboolean muted;
+  gboolean control_available;
+  gboolean control_busy;
+} StpwDirectBootstrapV2Status;
 
 typedef enum {
   STPW_DIRECT_BOOTSTRAP_V2_ENDPOINT_IGNORE,
@@ -45,6 +59,11 @@ StpwDirectBootstrapV2State
 stpw_direct_bootstrap_v2_get_state(StpwDirectBootstrapV2 *self);
 const gchar *stpw_direct_bootstrap_v2_get_detail(StpwDirectBootstrapV2 *self);
 gboolean stpw_direct_bootstrap_v2_has_output(StpwDirectBootstrapV2 *self);
+void stpw_direct_bootstrap_v2_set_status_callback(
+    StpwDirectBootstrapV2 *self, StpwDirectBootstrapV2StatusFunc status,
+    gpointer status_data, GDestroyNotify status_destroy);
+gboolean stpw_direct_bootstrap_v2_get_status(
+    StpwDirectBootstrapV2 *self, StpwDirectBootstrapV2Status *status);
 
 /* Pure predicates kept visible to the focused adapter test. */
 gboolean

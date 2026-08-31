@@ -13,7 +13,9 @@ typedef enum {
 
 typedef struct {
   GArray *reports;
+  GArray *busy;
   guint destroy_count;
+  guint busy_destroy_count;
   StpwDirectVolumeV2WapiDriver **drop_owner;
   gboolean drop_on_report;
 } ReportLog;
@@ -58,6 +60,19 @@ static void report_cb(StpwDirectVolumeV2WapiDriver *driver,
 static void report_destroy(gpointer user_data) {
   ReportLog *log = user_data;
   log->destroy_count++;
+}
+
+static void busy_cb(StpwDirectVolumeV2WapiDriver *driver, gboolean busy,
+                    gpointer user_data) {
+  ReportLog *log = user_data;
+
+  (void)driver;
+  g_array_append_val(log->busy, busy);
+}
+
+static void busy_destroy(gpointer user_data) {
+  ReportLog *log = user_data;
+  log->busy_destroy_count++;
 }
 
 static gboolean count_reached(gpointer user_data) {
@@ -181,6 +196,7 @@ static void fixture_init(Fixture *fixture) {
   fixture->posts = g_ptr_array_new_with_free_func(g_free);
   fixture->log.reports =
       g_array_new(FALSE, FALSE, sizeof(StpwDirectVolumeV2WapiReport));
+  fixture->log.busy = g_array_new(FALSE, FALSE, sizeof(gboolean));
   fixture->server = soup_server_new(NULL, NULL);
   soup_server_add_handler(fixture->server, NULL, server_cb, fixture, NULL);
   g_assert_true(soup_server_listen_local(fixture->server, 0, 0, &error));
@@ -192,6 +208,8 @@ static void fixture_init(Fixture *fixture) {
   fixture->client = stpw_wapi_client_new("127.0.0.1", (guint16)port);
   fixture->driver = stpw_direct_volume_v2_wapi_driver_new(
       fixture->client, report_cb, &fixture->log, report_destroy);
+  stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+      fixture->driver, busy_cb, &fixture->log, busy_destroy);
 }
 
 static void unpause(SoupServerMessage **message) {
@@ -207,10 +225,12 @@ static void fixture_clear(Fixture *fixture) {
   g_clear_object(&fixture->driver);
   drain_context();
   g_assert_cmpuint(fixture->log.destroy_count, ==, 1);
+  g_assert_cmpuint(fixture->log.busy_destroy_count, ==, 1);
   g_clear_object(&fixture->client);
   g_clear_object(&fixture->server);
   g_ptr_array_unref(fixture->posts);
   g_array_unref(fixture->log.reports);
+  g_array_unref(fixture->log.busy);
 }
 
 static StpwDirectVolumeV2WapiReport report_at(Fixture *fixture, guint index) {
@@ -274,10 +294,14 @@ static void test_seeded_route_posts_then_reads_actual(void) {
   fixture_init(&fixture);
   g_clear_object(&fixture.driver);
   g_assert_cmpuint(fixture.log.destroy_count, ==, 1);
+  g_assert_cmpuint(fixture.log.busy_destroy_count, ==, 1);
   fixture.log.destroy_count = 0;
+  fixture.log.busy_destroy_count = 0;
   fixture.driver = stpw_direct_volume_v2_wapi_driver_new_seeded(
       fixture.client, &initial, report_cb, &fixture.log, report_destroy);
   g_assert_nonnull(fixture.driver);
+  stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+      fixture.driver, busy_cb, &fixture.log, busy_destroy);
   fixture.target = 42;
   fixture.actual = 41;
   fixture.muted = TRUE;
@@ -296,6 +320,43 @@ static void test_seeded_route_posts_then_reads_actual(void) {
   g_assert_cmpuint(report_at(&fixture, 0).volume, ==, 41);
   g_assert_true(report_at(&fixture, 0).muted);
   g_assert_false(report_at(&fixture, 0).degraded);
+  fixture_clear(&fixture);
+}
+
+static void test_busy_tracks_real_operation_without_noop_stickiness(void) {
+  Fixture fixture;
+  StpwVolume initial = {.target = 10, .actual = 10, .muted = FALSE};
+
+  fixture_init(&fixture);
+  g_clear_object(&fixture.driver);
+  g_assert_cmpuint(fixture.log.destroy_count, ==, 1);
+  g_assert_cmpuint(fixture.log.busy_destroy_count, ==, 1);
+  fixture.log.destroy_count = 0;
+  fixture.log.busy_destroy_count = 0;
+  fixture.driver = stpw_direct_volume_v2_wapi_driver_new_seeded(
+      fixture.client, &initial, report_cb, &fixture.log, report_destroy);
+  stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+      fixture.driver, busy_cb, &fixture.log, busy_destroy);
+
+  g_assert_false(stpw_direct_volume_v2_wapi_driver_is_busy(fixture.driver));
+  g_assert_true(route_full(&fixture, 10, FALSE));
+  drain_context();
+  g_assert_false(stpw_direct_volume_v2_wapi_driver_is_busy(fixture.driver));
+  g_assert_cmpuint(fixture.log.busy->len, ==, 0);
+  g_assert_cmpuint(fixture.post_count, ==, 0);
+  g_assert_cmpuint(fixture.get_count, ==, 0);
+
+  fixture.pause_next_post = TRUE;
+  g_assert_true(route_full(&fixture, 20, TRUE));
+  wait_until(pointer_set, &fixture.paused_post);
+  g_assert_true(stpw_direct_volume_v2_wapi_driver_is_busy(fixture.driver));
+  g_assert_cmpuint(fixture.log.busy->len, ==, 1);
+  g_assert_true(g_array_index(fixture.log.busy, gboolean, 0));
+  unpause(&fixture.paused_post);
+  wait_count(&fixture.log.reports->len, 1);
+  g_assert_false(stpw_direct_volume_v2_wapi_driver_is_busy(fixture.driver));
+  g_assert_cmpuint(fixture.log.busy->len, ==, 2);
+  g_assert_false(g_array_index(fixture.log.busy, gboolean, 1));
   fixture_clear(&fixture);
 }
 
@@ -609,9 +670,12 @@ static void test_drop_during_paused_post(void) {
 
   /* A recreated output generation is seeded only from confirmed state. */
   fixture.log.destroy_count = 0;
+  fixture.log.busy_destroy_count = 0;
   fixture.driver = stpw_direct_volume_v2_wapi_driver_new_seeded(
       fixture.client, &recreated, report_cb, &fixture.log, report_destroy);
   g_assert_nonnull(fixture.driver);
+  stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+      fixture.driver, busy_cb, &fixture.log, busy_destroy);
   drain_context();
   g_assert_cmpuint(fixture.post_count, ==, 1);
   g_assert_cmpuint(fixture.get_count, ==, 1);
@@ -783,6 +847,7 @@ int main(int argc, char **argv) {
   ADD_TEST("initial-get-actual", test_initial_get_publishes_actual);
   ADD_TEST("baseline-route", test_baseline_route_posts_then_reads_actual);
   ADD_TEST("seeded-route", test_seeded_route_posts_then_reads_actual);
+  ADD_TEST("busy-real-operation", test_busy_tracks_real_operation_without_noop_stickiness);
   ADD_TEST("route-before-baseline", test_route_before_baseline);
   ADD_TEST("post-error-readback", test_post_http_error_still_reads_once);
   ADD_TEST("get-failed", test_failed_get_degrades);

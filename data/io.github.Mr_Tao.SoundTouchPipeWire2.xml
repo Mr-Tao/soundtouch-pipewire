@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: MIT -->
+<!--
+  The root object is exported by GDBusObjectManagerServer at
+  /io/github/Mr_Tao/SoundTouchPipeWire2. The standard ObjectManager and
+  Properties interfaces are intentionally supplied by GLib, not duplicated
+  here. Project interfaces are a read-only mirror of confirmed v2 state.
+-->
+<node name="/io/github/Mr_Tao/SoundTouchPipeWire2">
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire2.Manager">
+    <annotation name="org.gtk.GDBus.C.Name" value="Manager"/>
+    <property name="ApiVersion" type="u" access="read"/>
+    <property name="DiscoveryHealth" type="s" access="read"/>
+    <property name="Detail" type="s" access="read"/>
+  </interface>
+
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire2.Receiver">
+    <annotation name="org.gtk.GDBus.C.Name" value="Receiver"/>
+    <property name="DeviceId" type="s" access="read"/>
+    <property name="DisplayName" type="s" access="read"/>
+    <property name="Lifecycle" type="s" access="read"/>
+    <property name="Detail" type="s" access="read"/>
+    <property name="PipeWireDeviceName" type="s" access="read"/>
+    <property name="PipeWireNodeName" type="s" access="read"/>
+    <property name="ControlAvailable" type="b" access="read"/>
+    <property name="ControlBusy" type="b" access="read"/>
+    <property name="Volume" type="u" access="read"/>
+    <property name="Muted" type="b" access="read"/>
+    <property name="ConfirmedRevision" type="t" access="read"/>
+  </interface>
+</node>
