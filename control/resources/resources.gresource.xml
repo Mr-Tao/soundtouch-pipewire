@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/Mr_Tao/SoundTouchPipeWire/Control">
+    <file compressed="true">style.css</file>
+  </gresource>
+</gresources>

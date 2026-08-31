@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.Mr_Tao.SoundTouchPipeWire.Control</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="mr-tao.github.io">
+    <name>SoundTouch PipeWire contributors</name>
+  </developer>
+  <name>SoundTouch Controller</name>
+  <summary>Manage SoundTouch speakers connected through PipeWire</summary>
+  <description>
+    <p>
+      SoundTouch Controller displays speakers, saved multiroom zones, stereo
+      pairs, observed hardware topology, and recent operations provided by the
+      soundtouch-pipewire companion daemon.
+    </p>
+    <p>
+      It follows the daemon over a versioned session D-Bus API and can open a
+      general PipeWire mixer for ordinary stream and volume controls.
+    </p>
+  </description>
+  <url type="homepage">https://github.com/Mr-Tao/soundtouch-pipewire</url>
+  <launchable type="desktop-id">io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop</launchable>
+  <provides>
+    <binary>soundtouch-pipewire-control</binary>
+  </provides>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+</component>

@@ -1,0 +1,43 @@
+.status-banner {
+  padding: 9px 12px;
+}
+
+.status-banner.warning {
+  background: alpha(#e5a50a, 0.16);
+}
+
+.status-banner.success {
+  background: alpha(#2ec27e, 0.12);
+}
+
+.operation-banner {
+  padding: 7px 12px;
+  background: alpha(#3584e4, 0.10);
+}
+
+.operation-banner.warning {
+  background: alpha(#e5a50a, 0.16);
+}
+
+.operation-banner.success {
+  background: alpha(#2ec27e, 0.12);
+}
+
+.empty-page {
+  padding: 36px;
+}
+
+.object-row {
+  padding: 8px 12px;
+}
+
+.access-setting,
+.restart-notice {
+  padding: 12px;
+  border-radius: 8px;
+  background: alpha(currentColor, 0.05);
+}
+
+.restart-notice {
+  background: alpha(#e5a50a, 0.12);
+}

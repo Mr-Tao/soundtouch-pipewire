@@ -1,0 +1,19 @@
+[package]
+name = "soundtouch-pipewire-control"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+publish = false
+description = "GTK controller for soundtouch-pipewire"
+
+[dependencies]
+gettext-rs = { version = "0.7", features = ["gettext-system"] }
+gio = "0.21"
+glib = "0.21"
+gtk = { package = "gtk4", version = "0.10", features = ["v4_12"] }
+
+[build-dependencies]
+glib-build-tools = "0.21"
+
+[profile.release]
+lto = "thin"

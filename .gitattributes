@@ -1,0 +1,3 @@
+/.gitattributes export-ignore
+/packaging/** export-ignore
+/packaging/aur/*.patch whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab

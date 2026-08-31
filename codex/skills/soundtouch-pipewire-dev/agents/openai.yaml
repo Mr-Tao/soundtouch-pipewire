@@ -1,0 +1,4 @@
+interface:
+  display_name: "SoundTouch PipeWire Development"
+  short_description: "Build, diagnose, and deploy SoundTouch safely"
+  default_prompt: "Use $soundtouch-pipewire-dev to diagnose, test, package, and safely deploy this SoundTouch PipeWire stack."

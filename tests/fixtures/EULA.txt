@@ -1,0 +1,4 @@
+Test-only SoundTouch supplemental-terms fixture.
+
+This file exists only to exercise the CLI display and version gate. It is not
+the distributable SoundTouch Connection supplement.

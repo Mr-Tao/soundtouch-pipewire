@@ -1,0 +1,27 @@
+[general]
+schema-version=1
+# Automatically publish technically identity-checked receivers unless their
+# device section explicitly blocks them. This is not a remembered user
+# approval; keep false for an explicit allowlist.
+manage-all-verified=false
+pipewire-remote=pipewire-0
+reconcile-interval-ms=2000
+
+# The default stale-volume-policy is reject.  Enabling a device explicitly is
+# still recommended when manage-all-verified is false.
+# Device access is tri-state: true=explicit allow, false=explicit block, and an
+# omitted enabled key=auto (follows manage-all-verified).
+[device 020000000001]
+enabled=true
+stale-volume-policy=reject
+
+# last-confirmed is retained only for configuration compatibility and a
+# diagnostic confirmed-value cache. It never publishes a stale sink or permits
+# a volume write without a fresh exact-device /info check followed by a fresh
+# /volume GET. Limits cannot be raised beyond 600 seconds and 5 percentage
+# points.
+#[device 020000000002]
+#enabled=true
+#stale-volume-policy=last-confirmed
+#stale-max-age-seconds=600
+#stale-first-delta-percent=5

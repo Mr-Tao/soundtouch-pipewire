@@ -1,0 +1,49 @@
+Third-Party Notices
+===================
+
+PipeWire
+--------
+
+The uniquely named private RAOP and SoundTouch zone-sink modules are derived
+from PipeWire 1.6.8. The RAOP module includes a later upstream fix from commit
+4cf5acf18d3641dbdfc8e3c69cf4f47c0ff285ac. Those portions are licensed under
+the MIT license reproduced in PIPEWIRE-MIT.txt. The zone-sink module retains
+the PipeWire loopback copyright notice and adds separately identified
+MIT-licensed control and volume-contract work.
+
+Upstream project: https://pipewire.org/
+Upstream source: https://gitlab.freedesktop.org/pipewire/pipewire
+
+Rust GTK controller dependencies
+--------------------------------
+
+The optional GTK controller statically links third-party Rust crates recorded
+in control/Cargo.lock. The complete x86_64-unknown-linux-gnu runtime graph,
+selected license texts, crate versions, links, and copyright notices are in
+RUST-DEPENDENCIES.html. It is generated reproducibly with cargo-about from
+control/about.toml and control/about.hbs. Build-only and development-only
+crates are not linked into the shipped controller and are excluded.
+
+Those third-party terms remain independent of the project's MIT License and
+the supplemental terms governing use of the SoundTouch Connection.
+
+Bose names and API materials
+----------------------------
+
+Bose and SoundTouch are trademarks of Bose Corporation.
+
+No Bose code, logo, firmware, or API documentation is included in this
+package. Use of the SoundTouch Web API is subject to the terms published by
+Bose. The package therefore includes EULA.txt, a separate end-user supplement
+for the SoundTouch Connection. That supplement does not license or restrict
+copying, modification, or redistribution of the MIT-licensed project code.
+
+Reference reviewed for the supplement:
+https://assets.bosecreative.com/m/496577402d128874/original/SoundTouch-Web-API.pdf
+(document version 1.1; Terms of Use effective 2026-01-07; SHA-256
+294ddee5471bc74b8f692cfd36ecab8e2bbc8757408a50c2f25361af6f099d29).
+This reference does not replace the official document or future revisions
+published by Bose.
+
+This project is independent and is not endorsed, approved, sponsored,
+maintained, or supported by Bose.

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SoundTouch Controller
+Comment=Manage SoundTouch speakers, zones, and stereo pairs
+Exec=soundtouch-pipewire-control
+Icon=io.github.Mr_Tao.SoundTouchPipeWire.Control
+Terminal=false
+Categories=AudioVideo;Audio;GTK;
+Keywords=SoundTouch;PipeWire;speaker;multiroom;zone;stereo;
+StartupNotify=true

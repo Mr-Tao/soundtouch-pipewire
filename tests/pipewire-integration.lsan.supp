@@ -1,0 +1,4 @@
+# PipeWire client support plugins keep process-global allocations after
+# pw_context_destroy(). Keep lifecycle-test leak checking active for every
+# allocation that does not originate in the external module loader.
+leak:pw_context_load_module

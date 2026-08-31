@@ -1,0 +1,129 @@
+SUPPLEMENTAL END-USER TERMS FOR BOSE SOUNDTOUCH API FUNCTIONALITY
+Identifier: STPW-SOUNDTOUCH-SUPPLEMENT-1
+
+Developer
+---------
+
+Legal name: Lukáš Lipinský
+Postal address: U Trezorky 921/2, Jinonice, 158 00 Praha, Czech Republic
+Telephone: +420 220 437 653
+Email for questions, complaints, and claims: lukas.lipinsky+eula@googlemail.com
+
+Scope and acceptance
+--------------------
+
+The project's original code is made available under the MIT License reproduced
+in the project's LICENSE file. The MIT License governs copying, modification,
+and redistribution of that code. Third-party components retain their own
+licenses. These supplemental terms do not revoke or restrict those copyright
+permissions.
+
+These supplemental terms separately govern an end user's exercise of the
+Application's Bose SoundTouch Web API connection (the "SoundTouch
+Connection"). The "Application" means soundtouch-pipewire when it
+interoperates with a compatible Bose product through that connection. An end
+user accepts these terms by running:
+
+  soundtouch-pipewire eula accept STPW-SOUNDTOUCH-SUPPLEMENT-1
+
+and then enabling or using the SoundTouch Connection. Acceptance is personal
+to that end user. Copying the Application or an acceptance record does not
+transfer acceptance or sublicense any right granted by Bose.
+
+1. Parties, responsibility, and no endorsement
+-----------------------------------------------
+
+This agreement is concluded solely between the Developer identified above and
+the end user, not with Bose Corporation ("Bose"). The Developer, not Bose, is
+solely responsible for the Application and its content. Bose does not endorse,
+approve of, or sponsor the Application.
+
+2. SoundTouch Connection license
+---------------------------------
+
+Subject to these terms, the Developer grants the end user a limited,
+non-exclusive, non-transferable license to use the SoundTouch Connection only
+with a compatible Bose product that the end user owns or controls. Each
+recipient must accept these terms independently before using the SoundTouch
+Connection.
+
+This section governs use of the SoundTouch Connection. It does not alter the
+separate MIT copyright permissions covering the project code. The MIT License
+does not transfer or sublicense the Developer's contractual rights from Bose.
+
+3. Maintenance and support
+--------------------------
+
+The Developer is solely responsible for maintenance and support of the
+Application to the extent stated in these terms or required by applicable
+law. Bose has no obligation whatsoever to furnish maintenance or support for
+the Application. Questions, complaints, and claims must be directed to the
+Developer contact above.
+
+4. Warranty
+-----------
+
+TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE APPLICATION AND THE SOUNDTOUCH
+CONNECTION ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+
+To the extent a warranty is not effectively disclaimed or is imposed by law,
+the Developer is solely responsible for it. Bose has no warranty obligation
+whatsoever for the Application. Claims, losses, liabilities, damages, costs,
+or expenses attributable to any failure of the Application to conform to an
+applicable warranty are the Developer's responsibility, not Bose's.
+
+5. Product and regulatory claims
+--------------------------------
+
+The Developer, not Bose, is responsible for addressing claims by the end user
+or a third party relating to the Application or the end user's possession or
+use of it. This includes product-liability claims, claims that the Application
+fails to conform to an applicable legal or regulatory requirement, and claims
+arising under consumer-protection or similar law.
+
+6. Intellectual-property claims
+-------------------------------
+
+If a third party claims that the Application, or the end user's possession or
+use of it, infringes that party's intellectual-property rights, the Developer,
+not Bose, is solely responsible for investigating, defending, settling, and
+discharging that claim.
+
+7. Developer contact
+--------------------
+
+The Developer's legal name, postal address, telephone number, and email address
+are stated in the Developer section above. All questions, complaints, and
+claims relating to the Application must be directed there.
+
+8. Third-party beneficiaries
+----------------------------
+
+The Developer and end user acknowledge and agree that Bose, Bose's affiliates,
+and its and their respective licensors are third-party beneficiaries of these
+terms (collectively, the "Beneficiaries"). Upon the end user's acceptance of
+these terms, the Beneficiaries have, and are deemed to have accepted, the right
+to enforce these terms against the end user as third-party beneficiaries.
+
+9. Trademark attribution
+-------------------------
+
+Bose and SoundTouch are trademarks of Bose Corporation.
+
+The Application is independent and is not endorsed, approved, sponsored,
+maintained, or supported by Bose.
+
+Reference reviewed for this supplement
+--------------------------------------
+
+Official document: Bose SoundTouch Web API, version 1.1
+Terms effective: 2026-01-07
+Document release: 2026-04-01
+Document SHA-256: 294ddee5471bc74b8f692cfd36ecab8e2bbc8757408a50c2f25361af6f099d29
+Official URL:
+https://assets.bosecreative.com/m/496577402d128874/original/SoundTouch-Web-API.pdf
+
+The official Bose terms, not this reference block, determine the Developer's
+separate rights and obligations concerning Bose's materials.

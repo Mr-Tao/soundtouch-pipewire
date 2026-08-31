@@ -1,0 +1,81 @@
+# Architektura soundtouch-pipewire
+
+## Provenance
+
+- Zdrojová revize dokumentace: `{{SOURCE_SHORT_REVISION}}`
+- Otisk zdrojových dokumentů: `{{SOURCE_DIGEST}}`
+- Šablony: `{{TEMPLATE_REVISION}}`, `{{TEMPLATE_DIGEST}}`
+- Generátor: `{{GENERATOR_REVISION}}`, `{{GENERATOR_DIGEST}}`
+- Review manifest: `{{MANIFEST_REVISION}}`, `{{MANIFEST_DIGEST}}`
+- Společný commit exportních vstupů: `{{EXPORT_REVISION}}`
+- Charakter stránky: generovaný orientační souhrn, nikoli runtime snapshot
+
+## Hlavní hranice
+
+```text
+GTK 4 / Rust klient
+        |
+        | session D-Bus API
+        v
+soundtouch-pipewire daemon
+identita, WAPI, události, topologie, policy, transakce
+        |                              |
+        | PipeWire node commands       | SoundTouch Web API + WebSocket
+        v                              v
+soukromý RAOP modul  ------------->  fyzický master  ---> Bose followers
+transportní brána a marker             hlasitost, mute, zóna, zdroj
+        ^
+        |
+volitelný soukromý virtuální zone sink
+logický výstup pro odděleně ověřenou route
+```
+
+## Rozdělení odpovědnosti
+
+| Vrstva | Odpovědnost | Co sama nesmí předpokládat |
+| --- | --- | --- |
+| PipeWire | Audio uzly, formát, porty, linky a běh streamu | Že RAOP hlasitost odpovídá fyzické hlasitosti Bose nebo že zóna patří companionu |
+| Soukromý RAOP modul | Jednotkový softwarový gain, demand, packet gate a zdrojový marker | Že samotná žádost daemonu dokazuje bezpečný hardware stav |
+| Daemon | Identita zařízení, hardwarová hlasitost, mute, vlastnictví zdroje, topologické transakce a recovery | Že úspěšný HTTP status znamená konečný stav reproduktoru |
+| Soukromý zone sink | Logický zónový výstup, explicitní arm/disarm a ověřitelná route | Že smí sám vybrat reproduktor, změnit hardware nebo otevřít RAOP gate |
+| GTK klient | Zobrazení desired/observed stavu a odeslání verzovaných operací | Že GUI snapshot přežije restart vlastníka D-Bus služby |
+| Desktop mixer | Volba sinku a běžný uživatelský volume/mute intent | Že má znát Bose zóny nebo přímo volat SoundTouch API |
+
+## Dvě oddělené řídicí roviny
+
+PipeWire reprezentuje audio cestu. Bose zóny, stereo LEFT/RIGHT role a fyzická
+hlasitost jsou stav přijímačů, proto je vlastní daemon. GUI je klientem
+verzovaného D-Bus API a není pluginem mixéru ani WirePlumberu.
+
+Stav topologie a stav audio cesty se exportují odděleně. Zóna může být správně
+sestavená na reproduktorech, ale její PipeWire cesta může být stále
+`unpublished`, čekat za zavřenou bránou nebo selhat. UI nesmí jednu dimenzi
+zaměnit za druhou.
+
+První explicitní multiroom cesta povyšuje již vlastněný přímý RAOP stream.
+Fyzický master zůstává jediným PipeWire sinkem a Bose distribuuje audio
+followerům; virtuální zone sink se v tomto režimu nepublikuje. Přímý sink
+followeru se při adopci zóny preventivně stáhne. Pozdější zánik jeho RAOP
+služby proto neodstraní dříve ověřenou WAPI řídicí rovinu. Po skončení přímého
+streamu následuje nejprve bezpečný transport teardown, čerstvé sériově a
+monotónně ohraničené ověření neaktivních zdrojů všech členů a teprve potom
+rozpuštění Bose zóny s finálním recheckem. Na hranici mutace se navíc přímo na
+PipeWire loopu musí stále shodovat neaktivní demand a přesná generace sestupné
+hrany; i rychlý relink/unlink starou operaci zneplatní.
+
+## Soukromé moduly místo náhrady systému
+
+Projekt nepřepisuje systémový PipeWire RAOP modul. Daemon načítá zvlášť
+pojmenovaný soukromý modul až po WAPI preflightu a ověřuje jeho úplný kontrakt,
+publikační identitu a počáteční Props. Soukromý zone modul se publikuje jen pro
+čerstvě ověřenou aktivní zónu. Companion a moduly jsou párovaný rollout; změna
+kontraktu vyžaduje společné sestavení a ověření.
+
+## Odkazy
+
+- [Stav projektu](status.md)
+- [Multiroom a bezpečnostní invarianty](multiroom-safety.md)
+- [Architektonické hranice SoundFork](../soundfork/architecture-boundaries.md)
+
+Kanonické technické detaily jsou v `docs/private-module-contract.md` a
+`docs/multiroom-control.md` zdrojového repozitáře.

@@ -1,0 +1,7 @@
+# Project-scoped orchestration defaults verified on this Codex installation.
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
+
+[agents]
+# Three subagents plus the parent were exercised concurrently on this host.
+max_concurrent_threads_per_session = 3

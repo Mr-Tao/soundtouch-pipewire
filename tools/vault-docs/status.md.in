@@ -1,0 +1,83 @@
+# soundtouch-pipewire
+
+## Stav
+
+- Fáze: implementační prototyp s bezpečnostním modelem fail-closed
+- Zdrojová revize dokumentace: `{{SOURCE_SHORT_REVISION}}`
+- Datum zdrojové revize: {{SOURCE_DATE}}
+- Otisk zdrojových dokumentů: `{{SOURCE_DIGEST}}`
+- Revize a otisk šablon: `{{TEMPLATE_REVISION}}`, `{{TEMPLATE_DIGEST}}`
+- Revize a otisk generátoru: `{{GENERATOR_REVISION}}`, `{{GENERATOR_DIGEST}}`
+- Revize a otisk review manifestu: `{{MANIFEST_REVISION}}`, `{{MANIFEST_DIGEST}}`
+- Společný commit všech exportních vstupů: `{{EXPORT_REVISION}}`
+- Stav nasazení: tento export jej úmyslně neurčuje
+
+Tato stránka shrnuje pouze commitnutou dokumentaci projektu v uvedené revizi.
+Nezahrnuje rozpracované změny v pracovním stromu a nepotvrzuje, že je stejná
+revize sestavená nebo nasazená na konkrétním počítači.
+
+## Cíl
+
+Zpřístupnit SoundTouch reproduktory jako PipeWire výstupy a přitom zachovat
+hardwarovou hlasitost reproduktoru jako autoritativní stav. Companion před
+zveřejněním výstupu ověřuje identitu, čte fyzickou hlasitost a při nejistotě
+raději zvukovou cestu uzavře nebo výstup stáhne.
+
+## Co zdrojová dokumentace popisuje
+
+- soukromý RAOP modul s externím hardwarovým ovládáním hlasitosti a sekvenční
+  transportní bránou;
+- ovládání hlasitosti a mute přes SoundTouch Web API bez softwarového zeslabení
+  uživatelského audio proudu;
+- párované ověření RAOP a SoundTouch discovery, `/info`, událostí a stabilní
+  fyzické hlasitosti;
+- verzované session D-Bus API, uložené zóny a stereo páry a volitelný GTK 4
+  klient napsaný v Rustu;
+- explicitní aktivaci zóny povýšením přesně vlastněného přímého RAOP streamu,
+  při níž zůstává fyzický master jedinou PipeWire audio cestou;
+- soukromý virtuální zone sink pro odděleně ověřenou topologii a serializované
+  topologické operace s čerstvým ověřením a kompenzačním úklidem;
+- MPRIS směrování příkazů pouze k jednoznačně určenému již běžícímu přehrávači.
+
+## Aktuálně dokumentované hranice
+
+- Zdrojový kód je licencován pod MIT. Použití SoundTouch Web API připojení je
+  odděleně podmíněno přijetím přiložených doplňkových podmínek požadovaných
+  Bose; ty neomezují kopírování, úpravy ani šíření zdrojového kódu pod MIT.
+- `take-over-on-activation` je v uloženém schématu rezervované, ale popsaná
+  verze převzetí aktivního cizího zdroje odmítá a GUI akci nepovoluje.
+- `resume_policy` a `auto_heal` jsou uložené zásady; popsaná verze podle nich
+  sama nespouští přehrávání ani neopravuje topologii.
+- Aktivace zcela nečinné zóny je úmyslně odmítnuta, protože Bose firmware může
+  po `/setZone` obnovit dříve zapamatovaný zdroj. Explicitní aktivace vyžaduje
+  právě jeden již přehrávající vlastněný přímý sink.
+- Při povýšeném přehrávání se přímý sink followeru stáhne; daemon zachová jeho
+  ověřenou WAPI řídicí rovinu. Po bezpečném ukončení přímého streamu zařadí
+  rozpuštění zóny teprve čerstvý snapshot neaktivních zdrojů všech členů a
+  executor stav znovu ověří těsně před mutací, včetně přesné neaktivní
+  PipeWire demand generace načtené přímo z PipeWire loopu.
+- Bootstrap pouze z WAPI po restartu daemonu u již aktivní zóny zatím není
+  podporovaná recovery cesta.
+- Discovery prototypu je pouze IPv4.
+- Mezi poslední PipeWire synchronizační bariérou a modulem zůstává popsané
+  mezi-klientské pořadové okno; privátní release path proto vyžaduje živý
+  canary test.
+
+## Další ověření před změnou statusu
+
+- projít izolované testy bez zděděných přihlašovacích proměnných;
+- ověřit shodu companionu a obou soukromých PipeWire modulů;
+- při živém testu potvrdit skutečnou hlasitost a mute na reproduktoru, nejen
+  hodnotu PipeWire uzlu;
+- teprve po end-to-end testu zaznamenat konkrétní revizi jako nasazenou.
+
+## Odkazy
+
+- [Architektura a hranice](architecture.md)
+- [Multiroom a bezpečnostní invarianty](multiroom-safety.md)
+- [SoundTouch recovery](../soundtouch-recovery/status.md)
+- [SoundFork](../soundfork/status.md)
+
+Podrobné zdroje v repozitáři projektu: `README.md`,
+`docs/multiroom-control.md`, `docs/private-module-contract.md` a
+`control/README.md`.

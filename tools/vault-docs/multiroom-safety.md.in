@@ -1,0 +1,102 @@
+# Multiroom a bezpečnostní invarianty
+
+## Provenance
+
+- Zdrojová revize dokumentace: `{{SOURCE_SHORT_REVISION}}`
+- Otisk zdrojových dokumentů: `{{SOURCE_DIGEST}}`
+- Šablony: `{{TEMPLATE_REVISION}}`, `{{TEMPLATE_DIGEST}}`
+- Generátor: `{{GENERATOR_REVISION}}`, `{{GENERATOR_DIGEST}}`
+- Review manifest: `{{MANIFEST_REVISION}}`, `{{MANIFEST_DIGEST}}`
+- Společný commit exportních vstupů: `{{EXPORT_REVISION}}`
+- Rozsah: committed design popsaný ve zdrojové dokumentaci, bez živých dat
+
+## Desired a observed stav
+
+Uložené zóny a stereo páry jsou desired state. Stabilní identitu tvoří
+device ID nebo UUID; zobrazované jméno, aktuální master, Bose group ID a živé
+členství jsou pouze observed state. Daemon exportuje pozorovanou topologii jen
+z jednoho čerstvého cross-speaker snapshotu. Nekonzistentní stav může být vidět
+pro diagnostiku, ale nelze jej importovat jako platnou konfiguraci.
+
+Mutace běží přes jednu FIFO operací. Opakování stejného request UUID se
+stejnými argumenty je v rámci jedné instance idempotentní. Změna D-Bus ownera
+zakládá novou generaci; staré object paths ani operation ID se nesmějí použít
+po restartu daemonu.
+
+## Invarianty přímého SoundTouch výstupu
+
+1. RAOP a SoundTouch služba musí být svázané se stejným endpointem a identita
+   z RAOP instance musí souhlasit s čerstvým `/info`.
+2. Před publikací sinku musí být připojený event channel a fyzické target a
+   actual volume musí být stabilní.
+3. Cache je pouze diagnostická. Nesmí dodat počáteční gain, autorizovat zápis
+   ani publikovat zastaralý sink.
+4. Softwarový gain zůstává jedna. Veřejný volume/mute intent se serializuje do
+   SoundTouch Web API a potvrzuje novým čtením hardware stavu.
+5. Aktivace, reconnect, mute přechod a transportní chyba nejdříve uzavřou
+   sekvenční packet gate. Stará generace ani nonce ji nesmí znovu otevřít.
+6. Vlastnictví AirPlay streamu vyžaduje přesný náhodný marker potvrzený RTSP a
+   následně čerstvé `/now_playing` s přesným `AIRPLAY` a stejným markerem.
+7. Každý authorizing volume proof má absolutní `CLOCK_BOOTTIME` deadline;
+   suspend ani zpožděný callback jeho platnost neprodlouží.
+8. Pokud POST mohl dorazit, ale konečný stav nelze prokázat, sink se stáhne a
+   zařízení zůstane do explicitního restartu v karanténě. Nejistý intent se
+   nikdy automaticky nepřehrává.
+9. Recovery nesmí hardware zesílit ani odmuteovat. Bezpečně lze jen zachovat
+   stav nebo monotonně zeslabit pod zavřenou transportní bránou.
+
+## Invarianty zóny
+
+1. Topologická operace používá čerstvý snapshot všech účastníků a neběží
+   souběžně s receiver-volume transakcí.
+2. Před první mutací se rezervují write pipelines všech členů, ověří jejich
+   PipeWire tuple a synchronně se drží přesná RAOP gate.
+3. Úspěšná odpověď `/setZone` není dokončení. Následuje čerstvé ověření
+   topologie, hlasitosti, mute a aktivního zdroje na všech členech.
+4. Obnova po částečném selhání je jen monotónně bezpečná: nesmí zvýšit hlasitost
+   ani zrušit mute. Potom se zóna kompenzačně rozpustí a stav znovu přečte.
+5. Chybějící snapshot, cizí zdroj, změna publikace nebo gate, nejasný hardware
+   stav či neúspěšný cleanup znamená `CONTAIN`, nikoli automatický retry.
+6. Zone sink se nejdříve disarmuje a vyprázdní; až potom lze odstranit linky,
+   změnit master, rozpustit zónu nebo modul unloadnout.
+7. Explicitní aktivace vybírá právě jeden již vlastněný přímý RAOP stream;
+   nečinná aktivace je zakázána, protože firmware může obnovit zapamatovaný
+   receiver-local zdroj.
+8. Povýšený master zachová přesnou publikaci, demand epoch, marker a kanonický
+   PipeWire tuple. Zavřená gate kvůli mute je legitimní jen při shodě celého
+   tuple. Přímý sink followeru se při adopci stáhne, ale jeho WAPI identita a
+   fyzická hlasitost musí zůstat čerstvě ověřitelné.
+9. Konec přímého demand nejprve dokončí guarded teardown. Nezrušitelnou,
+   deduplikovanou operaci rozpuštění smí zařadit až čerstvý all-member snapshot
+   neaktivních zdrojů s pořadovým a monotónním ohraničením. Executor všechny
+   zdroje znovu ověří bezprostředně před mutací a přímo z PipeWire loopu ověří
+   `demanded=false` ve stejné generaci sestupné hrany. Relink nebo generační
+   posun operaci zneplatní; nejistota zůstane v containmentu.
+
+## Co uživatelské rozhraní musí rozlišovat
+
+- uloženou konfiguraci a skutečně pozorovanou Bose topologii;
+- topologický `State` a oddělený PipeWire `AudioState`;
+- efektivní a teprve uloženou receiver-admission policy;
+- dokončenou operaci a skutečně ověřený hardware výsledek;
+- nedostupný reproduktor a výslovně blokované zařízení.
+
+## Dokumentované limity
+
+- Převzetí cizího aktivního zdroje je rezervovaná, ale nepovolená operace.
+- Automatické resume a auto-heal uložené policy samy neprovádějí.
+- Automatická aktivace nečinné zone audio path není zapnutá; explicitní
+  aktivace může povýšit právě jeden již vlastněný přímý stream.
+- `Core.Sync` není globální transakce mezi různými PipeWire klienty; poslední
+  release okno vyžaduje modulový guard a živý canary test.
+- Restart daemonu u již aktivní zóny nelze zatím bezpečně obnovit pouze z WAPI
+  discovery bez původního RAOP vlastnického důkazu.
+
+## Odkazy
+
+- [Stav projektu](status.md)
+- [Architektura a hranice](architecture.md)
+- [Model obnovy SoundTouch](../soundtouch-recovery/recovery-model.md)
+
+Kanonické detaily jsou v `README.md`, `docs/multiroom-control.md` a
+`docs/private-module-contract.md` zdrojového repozitáře.

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: MIT -->
+<!--
+  The root object is exported by GDBusObjectManagerServer at
+  /io/github/Mr_Tao/SoundTouchPipeWire1. The standard
+  org.freedesktop.DBus.ObjectManager interface is supplied by that server and
+  is intentionally not duplicated in this gdbus-codegen input.
+
+  Stable ids and display names are separate throughout this API. Device ids
+  are normalized 12-character hexadecimal strings. Zone and stereo-pair ids,
+  and client request ids, are lower-case canonical UUID strings.
+
+  A logical member is encoded as (kind, id), where kind is "speaker" or
+  "stereo-pair". An empty ("", "") PreferredMaster means no preference.
+  Mutating methods never mutate properties optimistically; they return an
+  Operation object immediately.
+-->
+<node name="/io/github/Mr_Tao/SoundTouchPipeWire1">
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire1.Manager">
+    <annotation name="org.gtk.GDBus.C.Name" value="Manager"/>
+
+    <method name="CreateZone">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="members" type="a(ss)" direction="in"/>
+      <arg name="preferred_master" type="(ss)" direction="in"/>
+      <arg name="conflict_policy" type="s" direction="in"/>
+      <arg name="resume_policy" type="s" direction="in"/>
+      <arg name="auto_heal" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="CreateStereoPair">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="left_device_id" type="s" direction="in"/>
+      <arg name="right_device_id" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="ImportTopology">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="observed_topology" type="o" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="UpdateDefaults">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="conflict_policy" type="s" direction="in"/>
+      <arg name="resume_policy" type="s" direction="in"/>
+      <arg name="auto_heal" type="b" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="Reconcile">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="SetManageAllVerified">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="expected_digest" type="s" direction="in"/>
+      <arg name="value" type="b" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="SetDevicePolicy">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="expected_digest" type="s" direction="in"/>
+      <arg name="device_id" type="s" direction="in"/>
+      <arg name="mode" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <property name="ApiVersion" type="u" access="read"/>
+    <property name="DefaultConflictPolicy" type="s" access="read"/>
+    <property name="DefaultResumePolicy" type="s" access="read"/>
+    <property name="DefaultAutoHeal" type="b" access="read"/>
+    <property name="ManageAllVerified" type="b" access="read"/>
+    <property name="ConfiguredManageAllVerified" type="b" access="read"/>
+    <property name="ConfigPath" type="s" access="read"/>
+    <property name="ConfigWritable" type="b" access="read"/>
+    <property name="ConfigDigest" type="s" access="read"/>
+    <property name="ConfigurationRestartRequired" type="b" access="read"/>
+    <property name="ConfigurationError" type="s" access="read"/>
+    <property name="DevicePolicies" type="a{ss}" access="read"/>
+    <property name="DevicePolicyCount" type="u" access="read"/>
+    <property name="ExplicitlyAllowedDeviceCount" type="u" access="read"/>
+    <property name="ExplicitlyBlockedDeviceCount" type="u" access="read"/>
+  </interface>
+
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire1.Speaker">
+    <annotation name="org.gtk.GDBus.C.Name" value="Speaker"/>
+    <property name="Id" type="s" access="read"/>
+    <property name="Name" type="s" access="read"/>
+    <property name="Model" type="s" access="read"/>
+    <property name="Online" type="b" access="read"/>
+    <property name="Available" type="b" access="read"/>
+    <property name="Health" type="s" access="read"/>
+    <property name="CapabilitiesKnown" type="b" access="read"/>
+    <property name="StereoPairCapable" type="b" access="read"/>
+    <property name="ConfirmedVolume" type="u" access="read"/>
+    <property name="ConfirmedMuted" type="b" access="read"/>
+    <property name="WriteQuarantined" type="b" access="read"/>
+    <property name="StereoPair" type="s" access="read"/>
+    <property name="PolicyMode" type="s" access="read"/>
+    <property name="PolicyReason" type="s" access="read"/>
+    <property name="Error" type="s" access="read"/>
+  </interface>
+
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire1.ZonePreset">
+    <annotation name="org.gtk.GDBus.C.Name" value="ZonePreset"/>
+
+    <method name="Update">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="expected_revision" type="t" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="members" type="a(ss)" direction="in"/>
+      <arg name="preferred_master" type="(ss)" direction="in"/>
+      <arg name="conflict_policy" type="s" direction="in"/>
+      <arg name="resume_policy" type="s" direction="in"/>
+      <arg name="auto_heal" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="Activate">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="take_over" type="b" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="Dissolve">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="Delete">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="expected_revision" type="t" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <property name="Id" type="s" access="read"/>
+    <property name="Revision" type="t" access="read"/>
+    <property name="Name" type="s" access="read"/>
+    <property name="Members" type="a(ss)" access="read"/>
+    <property name="PreferredMaster" type="(ss)" access="read"/>
+    <property name="ConflictPolicy" type="s" access="read"/>
+    <property name="ResumePolicy" type="s" access="read"/>
+    <property name="AutoHeal" type="s" access="read"/>
+    <property name="State" type="s" access="read"/>
+    <property name="Available" type="b" access="read"/>
+    <property name="Degraded" type="b" access="read"/>
+    <property name="SinkNodeName" type="s" access="read"/>
+    <property name="AudioState" type="s" access="read"/>
+    <property name="AudioError" type="s" access="read"/>
+    <property name="CurrentMaster" type="(ss)" access="read"/>
+    <property name="StatusMessage" type="s" access="read"/>
+  </interface>
+
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire1.StereoPair">
+    <annotation name="org.gtk.GDBus.C.Name" value="StereoPair"/>
+
+    <method name="Update">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="expected_revision" type="t" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="left_device_id" type="s" direction="in"/>
+      <arg name="right_device_id" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="CreateOnHardware">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="take_over" type="b" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="Dissolve">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <method name="Delete">
+      <arg name="request_id" type="s" direction="in"/>
+      <arg name="expected_revision" type="t" direction="in"/>
+      <arg name="operation" type="o" direction="out"/>
+    </method>
+
+    <property name="Id" type="s" access="read"/>
+    <property name="Revision" type="t" access="read"/>
+    <property name="Name" type="s" access="read"/>
+    <property name="LeftDeviceId" type="s" access="read"/>
+    <property name="RightDeviceId" type="s" access="read"/>
+    <property name="State" type="s" access="read"/>
+    <property name="Available" type="b" access="read"/>
+    <property name="ObservedGroupId" type="s" access="read"/>
+    <property name="ObservedGroupMasterDeviceId" type="s" access="read"/>
+    <property name="ObservedConsistent" type="b" access="read"/>
+    <property name="StatusMessage" type="s" access="read"/>
+  </interface>
+
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire1.ObservedTopology">
+    <annotation name="org.gtk.GDBus.C.Name" value="ObservedTopology"/>
+    <property name="Id" type="s" access="read"/>
+    <property name="Kind" type="s" access="read"/>
+    <property name="Origin" type="s" access="read"/>
+    <property name="DeviceIds" type="as" access="read"/>
+    <property name="MasterDeviceId" type="s" access="read"/>
+    <property name="GroupId" type="s" access="read"/>
+    <property name="MatchedPresetId" type="s" access="read"/>
+    <property name="Consistent" type="b" access="read"/>
+    <property name="ExternalSourceActive" type="b" access="read"/>
+    <property name="ObservedAtUsec" type="x" access="read"/>
+  </interface>
+
+  <interface name="io.github.Mr_Tao.SoundTouchPipeWire1.Operation">
+    <annotation name="org.gtk.GDBus.C.Name" value="Operation"/>
+
+    <method name="Cancel">
+      <arg name="accepted" type="b" direction="out"/>
+    </method>
+
+    <property name="Id" type="s" access="read"/>
+    <property name="RequestId" type="s" access="read"/>
+    <property name="Kind" type="s" access="read"/>
+    <property name="Initiator" type="s" access="read"/>
+    <property name="State" type="s" access="read"/>
+    <property name="Phase" type="s" access="read"/>
+    <property name="CanCancel" type="b" access="read"/>
+    <property name="AffectedObjects" type="ao" access="read"/>
+    <property name="ResultObjects" type="ao" access="read"/>
+    <property name="ErrorName" type="s" access="read"/>
+    <property name="ErrorMessage" type="s" access="read"/>
+    <property name="CreatedAtUsec" type="x" access="read"/>
+    <property name="UpdatedAtUsec" type="x" access="read"/>
+  </interface>
+</node>

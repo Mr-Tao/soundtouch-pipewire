@@ -1,0 +1,3 @@
+control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop
+control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.metainfo.xml
+control/src/app.rs

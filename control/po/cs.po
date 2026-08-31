@@ -1,0 +1,1199 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: soundtouch-pipewire-control 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-01 08:34+0200\n"
+"PO-Revision-Date: 2026-07-29 00:00+0200\n"
+"Last-Translator: SoundTouch PipeWire contributors\n"
+"Language-Team: Czech\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop:3
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.metainfo.xml:9
+#: control/src/app.rs:351 control/src/app.rs:358
+msgid "SoundTouch Controller"
+msgstr "Ovládání SoundTouch"
+
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop:4
+msgid "Manage SoundTouch speakers, zones, and stereo pairs"
+msgstr "Spravovat reproduktory SoundTouch, zóny a stereo páry"
+
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop:9
+msgid "SoundTouch;PipeWire;speaker;multiroom;zone;stereo;"
+msgstr "SoundTouch;PipeWire;reproduktor;multiroom;zóna;stereo;"
+
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.metainfo.xml:10
+msgid "Manage SoundTouch speakers connected through PipeWire"
+msgstr "Spravovat reproduktory SoundTouch připojené přes PipeWire"
+
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.metainfo.xml:12
+msgid ""
+"SoundTouch Controller displays speakers, saved multiroom zones, stereo "
+"pairs, observed hardware topology, and recent operations provided by the "
+"soundtouch-pipewire companion daemon."
+msgstr ""
+"Ovládání SoundTouch zobrazuje reproduktory, uložené multiroom zóny, stereo "
+"páry, zjištěnou topologii reproduktorů a nedávné operace poskytované "
+"doprovodným démonem soundtouch-pipewire."
+
+#: control/data/io.github.Mr_Tao.SoundTouchPipeWire.Control.metainfo.xml:17
+msgid ""
+"It follows the daemon over a versioned session D-Bus API and can open a "
+"general PipeWire mixer for ordinary stream and volume controls."
+msgstr ""
+"Sleduje démona prostřednictvím verzovaného D-Bus API uživatelské relace a "
+"pro běžné ovládání streamů a hlasitosti umí otevřít obecný směšovač PipeWire."
+
+#: control/src/app.rs:204 control/src/app.rs:460
+msgid "Receiver Access"
+msgstr "Přístup reproduktorů"
+
+#: control/src/app.rs:221
+msgid "Automatically add identity-checked speakers"
+msgstr "Automaticky přidávat reproduktory s ověřenou identitou"
+
+#: control/src/app.rs:226
+msgid ""
+"When off, only explicitly allowed device IDs are published as PipeWire "
+"outputs."
+msgstr ""
+"Při vypnutí budou jako výstupy PipeWire zveřejněna pouze výslovně povolená "
+"ID zařízení."
+
+#: control/src/app.rs:255
+msgid "Restart Service"
+msgstr "Restartovat službu"
+
+#: control/src/app.rs:259
+msgid "Configuration"
+msgstr "Konfigurace"
+
+#: control/src/app.rs:269
+msgid "Configuration file"
+msgstr "Konfigurační soubor"
+
+#: control/src/app.rs:272
+msgid "GUI changes"
+msgstr "Změny z GUI"
+
+#: control/src/app.rs:276
+msgid "Device policies"
+msgstr "Zásady pro zařízení"
+
+#: control/src/app.rs:286
+msgid "Per-speaker policy"
+msgstr "Zásada pro jednotlivé reproduktory"
+
+#: control/src/app.rs:291
+msgid ""
+"Automatic follows the global setting. Allowed and Blocked are explicit "
+"device-ID overrides."
+msgstr ""
+"Automaticky se řídí globálním nastavením. Povoleno a blokováno jsou výslovné "
+"výjimky pro ID zařízení."
+
+#: control/src/app.rs:365
+msgid "Refresh"
+msgstr "Obnovit"
+
+#: control/src/app.rs:369
+msgid "Reconcile"
+msgstr "Sladit stav"
+
+#: control/src/app.rs:371
+msgid "Refresh authoritative speaker state and repair safe differences"
+msgstr "Načíst autoritativní stav reproduktorů a bezpečně opravit rozdíly"
+
+#: control/src/app.rs:375 control/src/app.rs:1371
+msgid "New Zone"
+msgstr "Nová zóna"
+
+#: control/src/app.rs:378 control/src/app.rs:1569
+msgid "New Stereo Pair"
+msgstr "Nový stereo pár"
+
+#: control/src/app.rs:382
+msgid "Open Mixer"
+msgstr "Otevřít směšovač"
+
+#: control/src/app.rs:383
+msgid "Open a general PipeWire volume mixer"
+msgstr "Otevřít obecný směšovač hlasitosti PipeWire"
+
+#: control/src/app.rs:388
+msgid "Automatic mixer"
+msgstr "Automatický směšovač"
+
+#: control/src/app.rs:389
+msgid "pwvucontrol"
+msgstr "pwvucontrol"
+
+#: control/src/app.rs:390
+msgid "pavucontrol"
+msgstr "pavucontrol"
+
+#: control/src/app.rs:391
+msgid "wiremix (terminal)"
+msgstr "wiremix (terminál)"
+
+#: control/src/app.rs:395
+msgid "Preferred general volume mixer"
+msgstr "Preferovaný obecný směšovač hlasitosti"
+
+#: control/src/app.rs:398
+msgid "Defaults"
+msgstr "Výchozí nastavení"
+
+#: control/src/app.rs:563
+msgid "Could not save the mixer preference"
+msgstr "Nastavení směšovače se nepodařilo uložit"
+
+#: control/src/app.rs:577
+msgid "No suitable mixer was found"
+msgstr "Nebyl nalezen vhodný směšovač"
+
+#: control/src/app.rs:579
+msgid ""
+"Install pwvucontrol or pavucontrol, or install wiremix together with a "
+"terminal emulator."
+msgstr ""
+"Nainstalujte pwvucontrol nebo pavucontrol, případně wiremix společně s "
+"emulátorem terminálu."
+
+#: control/src/app.rs:585
+msgid "Could not open the mixer"
+msgstr "Směšovač se nepodařilo otevřít"
+
+#: control/src/app.rs:616 control/src/app.rs:1363
+msgid "No available speaker or stereo-pair member was found."
+msgstr "Nebyl nalezen žádný dostupný reproduktor ani stereo pár."
+
+#: control/src/app.rs:626 control/src/app.rs:1560
+msgid ""
+"At least two available speakers with known stereo-pair capability are "
+"required."
+msgstr ""
+"Jsou zapotřebí alespoň dva dostupné reproduktory se známou podporou stereo "
+"páru."
+
+#: control/src/app.rs:639
+msgid "Connected to soundtouch-pipewire"
+msgstr "Připojeno k soundtouch-pipewire"
+
+#: control/src/app.rs:644
+msgid ""
+"soundtouch-pipewire is not running. The controller will reconnect "
+"automatically."
+msgstr ""
+"soundtouch-pipewire neběží. Ovládací aplikace se znovu připojí automaticky."
+
+#: control/src/app.rs:655
+msgid "Could not connect to soundtouch-pipewire"
+msgstr "K soundtouch-pipewire se nepodařilo připojit"
+
+#: control/src/app.rs:699 control/src/app.rs:702 control/src/app.rs:705
+#: control/src/app.rs:2930
+msgid "Unavailable"
+msgstr "Nedostupné"
+
+#: control/src/app.rs:710
+msgid ""
+"This daemon version does not expose receiver-access settings. Update "
+"soundtouch-pipewire to configure them here."
+msgstr ""
+"Tato verze démona nezveřejňuje nastavení přístupu reproduktorů. Chcete-li je "
+"nastavovat zde, aktualizujte soundtouch-pipewire."
+
+#: control/src/app.rs:713 control/src/app.rs:725
+msgid "Receiver-access settings are unavailable while the service is offline."
+msgstr ""
+"Nastavení přístupu reproduktorů není dostupné, dokud je služba offline."
+
+#: control/src/app.rs:729
+msgid ""
+"The daemon exposes only part of the receiver-access API. Settings are shown "
+"read-only until compatible versions are installed."
+msgstr ""
+"Démon zveřejňuje pouze část API pro přístup reproduktorů. Do instalace "
+"kompatibilních verzí se nastavení zobrazuje jen pro čtení."
+
+#: control/src/app.rs:733
+msgid ""
+"This service uses a custom or read-only configuration. Edit the shown file "
+"manually, then restart the service."
+msgstr ""
+"Služba používá vlastní konfiguraci nebo konfiguraci jen pro čtení. Upravte "
+"zobrazený soubor ručně a poté službu restartujte."
+
+#: control/src/app.rs:747
+msgid "Effective now"
+msgstr "Nyní účinné"
+
+#: control/src/app.rs:755
+msgid "Configured after restart"
+msgstr "Nastaveno po restartu"
+
+#: control/src/app.rs:763
+msgid "Saved receiver-access changes require a service restart."
+msgstr "Uložené změny přístupu reproduktorů vyžadují restart služby."
+
+#: control/src/app.rs:773 control/src/app.rs:2337
+msgid "Unknown"
+msgstr "Neznámé"
+
+#: control/src/app.rs:779
+msgid "Available"
+msgstr "Dostupné"
+
+#: control/src/app.rs:781
+msgid "Read-only; edit the file manually"
+msgstr "Jen pro čtení; upravte soubor ručně"
+
+#: control/src/app.rs:786
+msgid "Total"
+msgstr "Celkem"
+
+#: control/src/app.rs:788 control/src/app.rs:2335
+msgid "Allowed"
+msgstr "Povoleno"
+
+#: control/src/app.rs:790 control/src/app.rs:2336
+msgid "Blocked"
+msgstr "Blokováno"
+
+#: control/src/app.rs:799
+msgid "Configuration error"
+msgstr "Chyba konfigurace"
+
+#: control/src/app.rs:836
+msgid "Effective policy"
+msgstr "Účinná zásada"
+
+#: control/src/app.rs:840
+msgid "Not currently published"
+msgstr "Nyní nezveřejněno"
+
+#: control/src/app.rs:868
+msgid "Unsupported configured policy"
+msgstr "Nepodporovaná nastavená zásada"
+
+#: control/src/app.rs:908
+msgid "The policy could not be changed"
+msgstr "Zásadu se nepodařilo změnit"
+
+#: control/src/app.rs:909 control/src/app.rs:938
+msgid "Receiver-access configuration is unavailable or read-only."
+msgstr "Konfigurace přístupu reproduktorů není dostupná nebo je jen pro čtení."
+
+#: control/src/app.rs:937
+msgid "The setting could not be changed"
+msgstr "Nastavení se nepodařilo změnit"
+
+#: control/src/app.rs:946
+msgid "Automatically add identity-checked speakers?"
+msgstr "Automaticky přidávat reproduktory s ověřenou identitou?"
+
+#: control/src/app.rs:948
+msgid ""
+"Current and future compatible receivers on the local network may be "
+"published after protocol and device-ID checks. This is automatic discovery, "
+"not manual approval."
+msgstr ""
+"Současné i budoucí kompatibilní reproduktory v místní síti mohou být "
+"zveřejněny po kontrole protokolu a ID zařízení. Jde o automatické "
+"zjišťování, nikoli o ruční schvalování."
+
+#: control/src/app.rs:950
+msgid "Enable"
+msgstr "Zapnout"
+
+#: control/src/app.rs:956
+msgid "Require explicit receiver approval?"
+msgstr "Vyžadovat výslovné povolení reproduktorů?"
+
+#: control/src/app.rs:958
+msgid "Disable Automatic Access"
+msgstr "Vypnout automatický přístup"
+
+#: control/src/app.rs:982 control/src/app.rs:1018
+msgid "The service could not be restarted"
+msgstr "Službu se nepodařilo restartovat"
+
+#: control/src/app.rs:983
+msgid "The current soundtouch-pipewire owner could not be identified."
+msgstr "Nepodařilo se určit aktuální instanci soundtouch-pipewire."
+
+#: control/src/app.rs:994
+msgid "Requesting a restart of soundtouch-pipewire…"
+msgstr "Žádá se o restart soundtouch-pipewire…"
+
+#: control/src/app.rs:1008
+msgid ""
+"Service restart requested. Waiting for soundtouch-pipewire to reconnect…"
+msgstr ""
+"Byl vyžádán restart služby. Čeká se na opětovné připojení soundtouch-"
+"pipewire…"
+
+#: control/src/app.rs:1022 control/src/app.rs:1050
+msgid "Restart it manually with:"
+msgstr "Restartujte ji ručně pomocí:"
+
+#: control/src/app.rs:1044
+msgid "The service did not reconnect in time"
+msgstr "Služba se včas znovu nepřipojila"
+
+#: control/src/app.rs:1048
+msgid ""
+"The restart request was accepted, but soundtouch-pipewire did not return "
+"within two minutes. Inspect its status with:"
+msgstr ""
+"Požadavek na restart byl přijat, ale soundtouch-pipewire se do dvou minut "
+"nevrátil. Jeho stav zkontrolujete pomocí:"
+
+#: control/src/app.rs:1070
+msgid "soundtouch-pipewire is restarting; waiting for it to reconnect…"
+msgstr "soundtouch-pipewire se restartuje; čeká se na jeho opětovné připojení…"
+
+#: control/src/app.rs:1083
+msgid "soundtouch-pipewire restarted successfully"
+msgstr "soundtouch-pipewire byl úspěšně restartován"
+
+#: control/src/app.rs:1116
+msgid "Waiting for operation"
+msgstr "Čeká se na operaci"
+
+#: control/src/app.rs:1141
+msgid "Operation completed"
+msgstr "Operace byla dokončena"
+
+#: control/src/app.rs:1149
+msgid "Operation failed"
+msgstr "Operace selhala"
+
+#: control/src/app.rs:1158
+msgid "Operation cancelled"
+msgstr "Operace byla zrušena"
+
+#: control/src/app.rs:1164
+msgid "Operation in progress"
+msgstr "Operace probíhá"
+
+#: control/src/app.rs:1181 control/src/app.rs:1192 control/src/app.rs:1220
+#: control/src/app.rs:1293 control/src/app.rs:1341 control/src/app.rs:1534
+#: control/src/app.rs:1735
+msgid "The request could not be sent"
+msgstr "Požadavek se nepodařilo odeslat"
+
+#: control/src/app.rs:1182 control/src/app.rs:1193 control/src/app.rs:1294
+#: control/src/app.rs:1342 control/src/app.rs:1535 control/src/app.rs:1736
+msgid "The control service is offline."
+msgstr "Ovládací služba je odpojena."
+
+#: control/src/app.rs:1200
+msgid "Sending request to soundtouch-pipewire…"
+msgstr "Odesílá se požadavek službě soundtouch-pipewire…"
+
+#: control/src/app.rs:1213
+msgid "Operation submitted"
+msgstr "Operace byla odeslána"
+
+#: control/src/app.rs:1247
+msgid "Cancellation requested"
+msgstr "Bylo vyžádáno zrušení"
+
+#: control/src/app.rs:1251 control/src/app.rs:1255
+msgid "The operation could not be cancelled"
+msgstr "Operaci se nepodařilo zrušit"
+
+#: control/src/app.rs:1252
+msgid "Only queued operations can be cancelled."
+msgstr "Zrušit lze pouze operace čekající ve frontě."
+
+#: control/src/app.rs:1322 control/src/app.rs:1870 control/src/app.rs:2726
+msgid "Cancel"
+msgstr "Zrušit"
+
+#: control/src/app.rs:1362
+msgid "A zone cannot be created"
+msgstr "Zónu nelze vytvořit"
+
+#: control/src/app.rs:1369
+msgid "Edit Zone"
+msgstr "Upravit zónu"
+
+#: control/src/app.rs:1373
+msgid "Save Zone"
+msgstr "Uložit zónu"
+
+#: control/src/app.rs:1385 control/src/app.rs:1584
+msgid "Name"
+msgstr "Název"
+
+#: control/src/app.rs:1393 control/src/app.rs:1592
+msgid "unavailable"
+msgstr "nedostupné"
+
+#: control/src/app.rs:1402
+msgid "Members"
+msgstr "Členové"
+
+#: control/src/app.rs:1404
+msgid "No preferred master"
+msgstr "Bez preferovaného řídicího člena"
+
+#: control/src/app.rs:1421
+msgid "Preferred master"
+msgstr "Preferovaný řídicí člen"
+
+#: control/src/app.rs:1430 control/src/app.rs:1754
+msgid "Conflict policy"
+msgstr "Zásada pro konflikty"
+
+#: control/src/app.rs:1440 control/src/app.rs:1757
+msgid "Resume policy"
+msgstr "Zásada obnovení"
+
+#: control/src/app.rs:1450 control/src/app.rs:1762
+msgid "Automatic healing"
+msgstr "Automatické uzdravení"
+
+#: control/src/app.rs:1465 control/src/app.rs:1476 control/src/app.rs:1493
+msgid "The zone is incomplete"
+msgstr "Nastavení zóny není úplné"
+
+#: control/src/app.rs:1465
+msgid "Enter a zone name."
+msgstr "Zadejte název zóny."
+
+#: control/src/app.rs:1477
+msgid "Select at least one available member."
+msgstr "Vyberte alespoň jednoho dostupného člena."
+
+#: control/src/app.rs:1494
+msgid "The preferred master must also be a selected member."
+msgstr "Preferovaný řídicí člen musí být zároveň vybraným členem zóny."
+
+#: control/src/app.rs:1558
+msgid "A stereo pair cannot be created"
+msgstr "Stereo pár nelze vytvořit"
+
+#: control/src/app.rs:1567
+msgid "Edit Stereo Pair"
+msgstr "Upravit stereo pár"
+
+#: control/src/app.rs:1572
+msgid "Save Stereo Pair"
+msgstr "Uložit stereo pár"
+
+#: control/src/app.rs:1615
+msgid "Left speaker"
+msgstr "Levý reproduktor"
+
+#: control/src/app.rs:1616
+msgid "Right speaker"
+msgstr "Pravý reproduktor"
+
+#: control/src/app.rs:1631 control/src/app.rs:1644
+msgid "The stereo pair is incomplete"
+msgstr "Nastavení stereo páru není úplné"
+
+#: control/src/app.rs:1632
+msgid "Enter a stereo-pair name."
+msgstr "Zadejte název stereo páru."
+
+#: control/src/app.rs:1645
+msgid "Select different LEFT and RIGHT speakers."
+msgstr "Vyberte dva odlišné reproduktory pro LEVÝ a PRAVÝ kanál."
+
+#: control/src/app.rs:1679
+msgid "The observed topology is already saved"
+msgstr "Pozorovaná topologie je již uložená"
+
+#: control/src/app.rs:1680
+msgid "It already matches an existing saved zone or stereo pair."
+msgstr "Již odpovídá existující uložené zóně nebo stereo páru."
+
+#: control/src/app.rs:1686
+msgid "The observed topology cannot be imported"
+msgstr "Pozorovanou topologii nelze importovat"
+
+#: control/src/app.rs:1688
+msgid ""
+"The speakers reported inconsistent topology. Reconcile the state and try "
+"again."
+msgstr ""
+"Reproduktory ohlásily nekonzistentní topologii. Slaďte stav a zkuste to "
+"znovu."
+
+#: control/src/app.rs
+msgid "Wait for the affected speaker to recover before changing hardware topology."
+msgstr "Před změnou topologie reproduktorů počkejte, až se dotčený reproduktor zotaví."
+
+#: control/src/app.rs:1694
+msgid "Import Stereo Pair"
+msgstr "Importovat stereo pár"
+
+#: control/src/app.rs:1695
+msgid "Import Zone"
+msgstr "Importovat zónu"
+
+#: control/src/app.rs:1698 control/src/app.rs:1843
+msgid "Import"
+msgstr "Importovat"
+
+#: control/src/app.rs:1704
+msgid "Saved name"
+msgstr "Uložený název"
+
+#: control/src/app.rs:1715
+msgid "The import is incomplete"
+msgstr "Nastavení importu není úplné"
+
+#: control/src/app.rs:1715
+msgid "Enter a saved name."
+msgstr "Zadejte název ukládaného nastavení."
+
+#: control/src/app.rs:1742
+msgid "Default policies are unavailable"
+msgstr "Výchozí zásady nejsou k dispozici"
+
+#: control/src/app.rs:1743
+msgid "The control API is not compatible or is changing owner."
+msgstr "Ovládací API není kompatibilní nebo právě mění vlastníka."
+
+#: control/src/app.rs:1748
+msgid "Default Policies"
+msgstr "Výchozí zásady"
+
+#: control/src/app.rs:1748
+msgid "Save Defaults"
+msgstr "Uložit výchozí nastavení"
+
+#: control/src/app.rs:1824
+msgid "Audio"
+msgstr "Zvuk"
+
+#: control/src/app.rs:1856
+msgid "Already saved"
+msgstr "Již uloženo"
+
+#: control/src/app.rs:1862
+msgid "Import unavailable: inconsistent topology"
+msgstr "Import není dostupný: nekonzistentní topologie"
+
+#: control/src/app.rs
+msgid "Import unavailable: speaker controls blocked"
+msgstr "Import není dostupný: ovládání reproduktoru je zablokované"
+
+#: control/src/app.rs:1865
+msgid "Reconcile the speaker state before importing this topology."
+msgstr "Před importem této topologie slaďte stav reproduktorů."
+
+#: control/src/app.rs:1899 control/src/app.rs:2003
+msgid "Edit"
+msgstr "Upravit"
+
+#: control/src/app.rs:1913
+msgid "Activate"
+msgstr "Aktivovat"
+
+#: control/src/app.rs:1931 control/src/app.rs:1943 control/src/app.rs:2035
+#: control/src/app.rs:2047
+msgid "Take Over"
+msgstr "Převzít řízení"
+
+#: control/src/app.rs:1939
+msgid "Take over the current speaker topology?"
+msgstr "Převzít řízení aktuální topologie reproduktorů?"
+
+#: control/src/app.rs:1941
+msgid ""
+"This may stop an external source or dissolve a conflicting zone before "
+"activating the saved zone."
+msgstr ""
+"Před aktivací uložené zóny může být zastaven externí zdroj nebo rozpuštěna "
+"konfliktní zóna."
+
+#: control/src/app.rs:1954 control/src/app.rs:1964 control/src/app.rs:2058
+#: control/src/app.rs:2068
+msgid "Dissolve"
+msgstr "Rozpustit"
+
+#: control/src/app.rs:1962
+msgid "Dissolve this hardware zone?"
+msgstr "Rozpustit tuto zónu v reproduktorech?"
+
+#: control/src/app.rs:1963
+msgid "The saved zone remains available for later activation."
+msgstr "Uložená zóna zůstane k dispozici pro pozdější aktivaci."
+
+#: control/src/app.rs:1972 control/src/app.rs:1982 control/src/app.rs:2076
+#: control/src/app.rs:2086
+msgid "Delete"
+msgstr "Smazat"
+
+#: control/src/app.rs:1980
+msgid "Delete this saved zone?"
+msgstr "Smazat tuto uloženou zónu?"
+
+#: control/src/app.rs:1981 control/src/app.rs:2085
+msgid "This removes the preset but does not implicitly dissolve hardware."
+msgstr ""
+"Tímto se odstraní předvolba, ale topologie v reproduktorech se automaticky "
+"nerozpustí."
+
+#: control/src/app.rs:2017
+msgid "Create on Hardware"
+msgstr "Vytvořit v reproduktorech"
+
+#: control/src/app.rs:2043
+msgid "Take over both speakers for this stereo pair?"
+msgstr "Převzít řízení obou reproduktorů pro tento stereo pár?"
+
+#: control/src/app.rs:2045
+msgid ""
+"This may stop external sources or dissolve conflicting topology before "
+"creating the pair."
+msgstr ""
+"Před vytvořením páru mohou být zastaveny externí zdroje nebo rozpuštěna "
+"konfliktní topologie."
+
+#: control/src/app.rs:2066
+msgid "Dissolve this hardware stereo pair?"
+msgstr "Rozpustit tento stereo pár v reproduktorech?"
+
+#: control/src/app.rs:2067
+msgid "The saved stereo-pair preset remains available."
+msgstr "Uložená předvolba stereo páru zůstane k dispozici."
+
+#: control/src/app.rs:2084
+msgid "Delete this saved stereo pair?"
+msgstr "Smazat tento uložený stereo pár?"
+
+#: control/src/app.rs:2308
+msgid ""
+"After restart, only explicitly allowed device IDs will be published. No "
+"currently published speaker uses automatic access."
+msgstr ""
+"Po restartu budou zveřejněna pouze výslovně povolená ID zařízení. Žádný nyní "
+"zveřejněný reproduktor nepoužívá automatický přístup."
+
+#: control/src/app.rs:2319
+msgid "These automatically added speakers will disappear after restart:"
+msgstr "Tyto automaticky přidané reproduktory po restartu zmizí:"
+
+#: control/src/app.rs:2320
+msgid "Explicitly allowed speakers will remain published."
+msgstr "Výslovně povolené reproduktory zůstanou zveřejněné."
+
+#: control/src/app.rs:2326
+msgid "Automatic access enabled"
+msgstr "Automatický přístup zapnut"
+
+#: control/src/app.rs:2328
+msgid "Explicit allowlist only"
+msgstr "Pouze výslovně povolená zařízení"
+
+#: control/src/app.rs:2334 control/src/app.rs:2982
+msgid "Automatic"
+msgstr "Automaticky"
+
+#: control/src/app.rs:2344
+msgid "Protocol and device ID verified"
+msgstr "Protokol a ID zařízení byly ověřeny"
+
+#: control/src/app.rs:2345
+msgid "Explicitly allowed by device ID"
+msgstr "Výslovně povoleno podle ID zařízení"
+
+#: control/src/app.rs:2360 control/src/app.rs:2378
+msgid "Access policy"
+msgstr "Zásada přístupu"
+
+#: control/src/app.rs:2369
+msgid "Device ID"
+msgstr "ID zařízení"
+
+#: control/src/app.rs:2385
+msgid "Policy reason"
+msgstr "Důvod zásady"
+
+#: control/src/app.rs:2405
+msgid "Some members are unavailable"
+msgstr "Někteří členové nejsou dostupní"
+
+#: control/src/app.rs:2410 control/src/app.rs:2418
+msgid "Audio error"
+msgstr "Chyba zvuku"
+
+#: control/src/app.rs:2414 control/src/app.rs:2436
+msgid "Preset ID"
+msgstr "ID předvolby"
+
+#: control/src/app.rs:2461
+msgid "Operation ID"
+msgstr "ID operace"
+
+#: control/src/app.rs:2462
+msgid "Request ID"
+msgstr "ID požadavku"
+
+#: control/src/app.rs:2463
+msgid "Initiator"
+msgstr "Původce"
+
+#: control/src/app.rs:2466
+msgid "Phase"
+msgstr "Fáze"
+
+#: control/src/app.rs:2472
+msgid "Error name"
+msgstr "Název chyby"
+
+#: control/src/app.rs:2477
+msgid "Technical detail"
+msgstr "Technické podrobnosti"
+
+#: control/src/app.rs:2511
+msgid "Matches saved preset"
+msgstr "Odpovídá uložené předvolbě"
+
+#: control/src/app.rs:2518
+msgid "Master speaker"
+msgstr "Řídicí reproduktor"
+
+#: control/src/app.rs:2523
+msgid "An external source is playing"
+msgstr "Přehrává externí zdroj"
+
+#: control/src/app.rs:2528
+msgid "Observed"
+msgstr "Zjištěno"
+
+#: control/src/app.rs:2534
+msgid "Topology ID"
+msgstr "ID topologie"
+
+#: control/src/app.rs:2538
+msgid "Group ID"
+msgstr "ID skupiny"
+
+#: control/src/app.rs:2543
+msgid "Device IDs"
+msgstr "ID zařízení"
+
+#: control/src/app.rs:2552
+msgid "Consistent"
+msgstr "Konzistentní"
+
+#: control/src/app.rs:2554 control/src/app.rs:2931
+msgid "Inconsistent"
+msgstr "Nekonzistentní"
+
+#: control/src/app.rs:2674
+msgid "This action is not available in the current hardware state."
+msgstr "Tato akce není v aktuálním stavu reproduktorů dostupná."
+
+#: control/src/app.rs:2685
+msgid ""
+"Take-over is temporarily unavailable until active sources and topology can "
+"be handed off safely."
+msgstr ""
+"Převzetí řízení je dočasně nedostupné, dokud nebude možné bezpečně předat "
+"aktivní zdroje a topologii."
+
+#: control/src/app.rs:2762
+msgid ""
+"Automatic resume and healing settings are stored for future support; the "
+"daemon does not execute them yet."
+msgstr ""
+"Nastavení automatického obnovení a uzdravení se ukládají pro budoucí "
+"podporu; démon je zatím neprovádí."
+
+#: control/src/app.rs:2793
+msgid ""
+"The root Manager interface is not ready. Waiting for a complete daemon "
+"snapshot."
+msgstr ""
+"Kořenové rozhraní Manager ještě není připraveno. Čeká se na úplný snímek "
+"stavu démona."
+
+#: control/src/app.rs:2796
+msgid ""
+"The control interfaces belong to different daemon generations. Waiting for a "
+"consistent snapshot."
+msgstr ""
+"Rozhraní ovládací služby patří různým generacím démona. Čeká se na "
+"konzistentní snímek stavu."
+
+#: control/src/app.rs:2799
+msgid "The daemon does not publish the required control API version."
+msgstr "Démon nezveřejňuje požadovanou verzi ovládacího API."
+
+#: control/src/app.rs:2803
+msgid "Unsupported control API version:"
+msgstr "Nepodporovaná verze ovládacího API:"
+
+#: control/src/app.rs:2804
+msgid "This controller requires API version 1."
+msgstr "Tato ovládací aplikace vyžaduje verzi API 1."
+
+#: control/src/app.rs:2807
+msgid "The daemon published incomplete or invalid default policies."
+msgstr "Démon zveřejnil neúplné nebo neplatné výchozí zásady."
+
+#: control/src/app.rs:2845
+msgid "Create zone"
+msgstr "Vytvoření zóny"
+
+#: control/src/app.rs:2846
+msgid "Update zone"
+msgstr "Úprava zóny"
+
+#: control/src/app.rs:2847
+msgid "Delete zone"
+msgstr "Smazání zóny"
+
+#: control/src/app.rs:2848
+msgid "Activate zone"
+msgstr "Aktivace zóny"
+
+#: control/src/app.rs:2849
+msgid "Dissolve zone"
+msgstr "Rozpuštění zóny"
+
+#: control/src/app.rs:2850
+msgid "Create stereo pair"
+msgstr "Vytvoření stereo páru"
+
+#: control/src/app.rs:2851
+msgid "Update stereo pair"
+msgstr "Úprava stereo páru"
+
+#: control/src/app.rs:2852
+msgid "Dissolve stereo pair"
+msgstr "Rozpuštění stereo páru"
+
+#: control/src/app.rs:2853
+msgid "Delete stereo pair"
+msgstr "Smazání stereo páru"
+
+#: control/src/app.rs:2854
+msgid "Import topology"
+msgstr "Import topologie"
+
+#: control/src/app.rs:2855
+msgid "Update defaults"
+msgstr "Změna výchozího nastavení"
+
+#: control/src/app.rs:2856
+msgid "Update automatic receiver access"
+msgstr "Změna automatického přístupu reproduktorů"
+
+#: control/src/app.rs:2857
+msgid "Update receiver policy"
+msgstr "Změna zásady reproduktoru"
+
+#: control/src/app.rs:2858
+msgid "Reconcile speaker state"
+msgstr "Sladění stavu reproduktorů"
+
+#: control/src/app.rs:2859
+msgid "Automatic repair"
+msgstr "Automatická oprava"
+
+#: control/src/app.rs:2866 control/src/app.rs:2877
+msgid "Queued"
+msgstr "Čeká ve frontě"
+
+#: control/src/app.rs:2867 control/src/app.rs:2878
+msgid "Running"
+msgstr "Probíhá"
+
+#: control/src/app.rs:2868
+msgid "Succeeded"
+msgstr "Dokončeno"
+
+#: control/src/app.rs:2869 control/src/app.rs:2880 control/src/app.rs:2999
+msgid "Failed"
+msgstr "Selhalo"
+
+#: control/src/app.rs:2870 control/src/app.rs:2881
+msgid "Cancelled"
+msgstr "Zrušeno"
+
+#: control/src/app.rs:2879
+msgid "Completed"
+msgstr "Dokončeno"
+
+#: control/src/app.rs:2888
+msgid "Automatic topology refresh"
+msgstr "Automatické obnovení topologie"
+
+#: control/src/app.rs:2890
+msgid "Companion daemon"
+msgstr "Doprovodný démon"
+
+#: control/src/app.rs:2892
+msgid "User application"
+msgstr "Uživatelská aplikace"
+
+#: control/src/app.rs:2894 control/src/app.rs:2914
+msgid "Unknown origin"
+msgstr "Neznámý původ"
+
+#: control/src/app.rs:2902
+msgid "Zone"
+msgstr "Zóna"
+
+#: control/src/app.rs:2903
+msgid "Stereo pair"
+msgstr "Stereo pár"
+
+#: control/src/app.rs:2904
+msgid "Unknown topology"
+msgstr "Neznámá topologie"
+
+#: control/src/app.rs:2911
+msgid "Managed topology"
+msgstr "Spravovaná topologie"
+
+#: control/src/app.rs:2912
+msgid "External topology"
+msgstr "Externí topologie"
+
+#: control/src/app.rs:2913
+msgid "Restored topology"
+msgstr "Obnovená topologie"
+
+#: control/src/app.rs:2921
+msgid "Verifying"
+msgstr "Ověřování"
+
+#: control/src/app.rs:2922
+msgid "Connecting"
+msgstr "Připojování"
+
+#: control/src/app.rs:2923
+msgid "Reading volume"
+msgstr "Načítání hlasitosti"
+
+#: control/src/app.rs
+msgid "Recovering"
+msgstr "Probíhá zotavení"
+
+#: control/src/app.rs:2924 control/src/app.rs:2929
+msgid "Active"
+msgstr "Aktivní"
+
+#: control/src/app.rs:2925
+msgid "Error"
+msgstr "Chyba"
+
+#: control/src/app.rs:2926
+msgid "Offline"
+msgstr "Odpojeno"
+
+#: control/src/app.rs:2927
+msgid "Quarantined"
+msgstr "V karanténě"
+
+#: control/src/app.rs
+msgid "Hardware writes blocked"
+msgstr "Zápisy do reproduktoru zablokovány"
+
+#: control/src/app.rs:2928
+msgid "Saved"
+msgstr "Uloženo"
+
+#: control/src/app.rs:2932
+msgid "Unknown state"
+msgstr "Neznámý stav"
+
+#: control/src/app.rs:2939
+msgid "Not activated"
+msgstr "Neaktivováno"
+
+#: control/src/app.rs:2940
+msgid "Not created"
+msgstr "Nevytvořeno"
+
+#: control/src/app.rs:2942
+msgid "Preset changed; activate or reconcile it again"
+msgstr "Předvolba byla změněna; znovu ji aktivujte nebo slaďte stav"
+
+#: control/src/app.rs:2945
+msgid "Preset changed; create or reconcile the pair again"
+msgstr "Předvolba byla změněna; znovu vytvořte pár nebo slaďte stav"
+
+#: control/src/app.rs:2947
+msgid "Activated with unavailable members"
+msgstr "Aktivováno s nedostupnými členy"
+
+#: control/src/app.rs:2948
+msgid "Verified on all logical members"
+msgstr "Ověřeno na všech logických členech"
+
+#: control/src/app.rs:2949
+msgid "Dissolved and verified"
+msgstr "Rozpuštěno a ověřeno"
+
+#: control/src/app.rs:2950
+msgid "Created and verified on both speakers"
+msgstr "Vytvořeno a ověřeno na obou reproduktorech"
+
+#: control/src/app.rs:2951
+msgid "One or both speakers are offline"
+msgstr "Jeden nebo oba reproduktory jsou odpojené"
+
+#: control/src/app.rs:2952
+msgid "Observed consistently on both speakers"
+msgstr "Shodně zjištěno na obou reproduktorech"
+
+#: control/src/app.rs:2953
+msgid "Not present on hardware"
+msgstr "V reproduktorech není aktivní"
+
+#: control/src/app.rs:2954
+msgid "Hardware group differs between speakers"
+msgstr "Skupina se mezi reproduktory liší"
+
+#: control/src/app.rs:2955
+msgid "No valid logical member is online"
+msgstr "Žádný platný logický člen není připojený"
+
+#: control/src/app.rs:2956
+msgid "Available members are not zoned"
+msgstr "Dostupní členové nejsou seskupení do zóny"
+
+#: control/src/app.rs:2958
+msgid "Observed zone is incomplete or inconsistent"
+msgstr "Zjištěná zóna je neúplná nebo nekonzistentní"
+
+#: control/src/app.rs:2960
+msgid "Active with unavailable logical members"
+msgstr "Aktivní s nedostupnými logickými členy"
+
+#: control/src/app.rs:2961
+msgid "Observed consistently"
+msgstr "Konzistentně zjištěno"
+
+#: control/src/app.rs:2968 control/src/app.rs:2973
+msgid "Unknown time"
+msgstr "Neznámý čas"
+
+#: control/src/app.rs:2978
+msgid "Inherit"
+msgstr "Zdědit"
+
+#: control/src/app.rs:2979
+msgid "Protected"
+msgstr "Chráněno"
+
+#: control/src/app.rs:2980
+msgid "Take over on activation"
+msgstr "Převzít řízení při aktivaci"
+
+#: control/src/app.rs:2981
+msgid "Manual"
+msgstr "Ručně"
+
+#: control/src/app.rs:2983
+msgid "Disabled"
+msgstr "Vypnuto"
+
+#: control/src/app.rs:2984
+msgid "Enabled"
+msgstr "Zapnuto"
+
+#: control/src/app.rs:2991
+msgid "Unpublished"
+msgstr "Nezveřejněno"
+
+#: control/src/app.rs:2992
+msgid "Idle"
+msgstr "Nečinné"
+
+#: control/src/app.rs:2993
+msgid "Waiting for playback"
+msgstr "Čeká na přehrávání"
+
+#: control/src/app.rs:2994
+msgid "Verifying receiver"
+msgstr "Ověřování reproduktorů"
+
+#: control/src/app.rs:2995
+msgid "Playing"
+msgstr "Přehrává"
+
+#: control/src/app.rs:2996
+msgid "Playing through direct master"
+msgstr "Přehrávání přes přímý master"
+
+#: control/src/app.rs:2997
+msgid "Dissolving playback zone"
+msgstr "Rozpouštění přehrávací zóny"
+
+#: control/src/app.rs:2996
+msgid "Updating volume"
+msgstr "Aktualizace hlasitosti"
+
+#: control/src/app.rs:2997
+msgid "Rolling volume back"
+msgstr "Obnovování původní hlasitosti"
+
+#: control/src/app.rs:2998
+msgid "Verifying volume"
+msgstr "Ověřování hlasitosti"
+
+#: control/src/app.rs:3012
+msgid "Speakers"
+msgstr "Reproduktory"
+
+#: control/src/app.rs:3013
+msgid "Zones"
+msgstr "Zóny"
+
+#: control/src/app.rs:3014
+msgid "Stereo Pairs"
+msgstr "Stereo páry"
+
+#: control/src/app.rs:3015
+msgid "Observed Topology"
+msgstr "Pozorovaná topologie"
+
+#: control/src/app.rs:3016
+msgid "Operations"
+msgstr "Operace"
+
+#: control/src/app.rs:3022
+msgid "No speakers"
+msgstr "Žádné reproduktory"
+
+#: control/src/app.rs:3023
+msgid "No saved zones"
+msgstr "Žádné uložené zóny"
+
+#: control/src/app.rs:3024
+msgid "No stereo pairs"
+msgstr "Žádné stereo páry"
+
+#: control/src/app.rs:3025
+msgid "No observed topology"
+msgstr "Žádná pozorovaná topologie"
+
+#: control/src/app.rs:3026
+msgid "No recent operations"
+msgstr "Žádné nedávné operace"
+
+#: control/src/app.rs:3045
+msgid "The speakers currently report no zone or stereo pair."
+msgstr "Reproduktory nyní nehlásí žádnou zónu ani stereo pár."
+
+#: control/src/app.rs:3062
+msgid "No known speaker device IDs"
+msgstr "Žádná známá ID reproduktorů"

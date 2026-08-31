@@ -1,0 +1,24 @@
+option(
+  'private_module_dir',
+  type: 'string',
+  value: '/usr/lib/soundtouch-pipewire/pipewire-0.3',
+  description: 'Directory containing the patched private RAOP module',
+)
+option(
+  'private_module_test_path',
+  type: 'string',
+  value: '',
+  description: 'Private RAOP module artifact used by lifecycle tests',
+)
+option(
+  'service_unit_test_path',
+  type: 'string',
+  value: '',
+  description: 'Packaged user service unit checked by the service-v2 test',
+)
+option(
+  'control_app',
+  type: 'feature',
+  value: 'disabled',
+  description: 'Build and install the optional Rust/GTK SoundTouch controller',
+)
