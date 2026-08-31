@@ -84,7 +84,10 @@ then the shared PipeWire context, and performs no hardware write.
 
 The standard PipeWire Device Route and its Node mirror are the only supported
 volume/mute control surface. WirePlumber remains responsible for normal Route
-selection and persistence.
+selection and persistence. A separately versioned, read-only desktop status
+mirror and a Route-only GTK client are permitted only under the
+[`v2 desktop indicator contract`](v2-indicator-contract.md); neither is a
+second control or confirmed-state authority.
 
 The v1 D-Bus control API, GTK controller operations, MPRIS router, SoundTouch
 zones, stereo-pair orchestration, and virtual-zone module are not connected to
@@ -95,8 +98,9 @@ failed. They must not be silently reintroduced as a second authority.
 After acquiring the shared instance lock, `service-v2` removes the frozen v1
 runtime-status file. No v1 process can still own it at that point. The legacy
 `status` command consequently reports unavailable rather than misrepresenting
-stale v1 JSON as current v2 state. V2 status/GUI reporting requires a separate
-contract and is deliberately omitted here.
+stale v1 JSON as current v2 state. V2 status and GUI behavior are defined
+separately by the
+[`v2 desktop indicator contract`](v2-indicator-contract.md).
 
 ## Acceptance criteria
 

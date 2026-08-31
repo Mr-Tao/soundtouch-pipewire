@@ -75,6 +75,13 @@ controller, zones, stereo pairs, MPRIS router, and virtual-zone operations are
 not connected to `service-v2`; PipeWire Device Routes are its supported control
 surface.
 
+The separately versioned read-only v2 status API and planned Rust/GTK 4
+StatusNotifierItem client are governed by the
+[`v2 desktop indicator contract`](docs/v2-indicator-contract.md). Its volume
+and mute controls write only the standard Device Route; optimistic state is a
+bounded client-local presentation and never becomes service, D-Bus, Route, or
+Node current state.
+
 The legacy `status` command and GTK controller do not describe `service-v2`.
 On startup, after exclusive-lock acquisition, v2 removes any stale v1 runtime
 status so those tools fail unavailable instead of reporting obsolete state.
