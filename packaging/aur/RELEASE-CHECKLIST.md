@@ -41,7 +41,7 @@ not a substitute.
 - [x] Replace household-specific fixture names in the proposed public tree;
       retain only synthetic locally administered MAC addresses, documentation
       ranges, and obviously artificial IDs.
-- [ ] Create a new single-commit public history from the reviewed final tree.
+- [x] Create a new single-commit public history from the reviewed final tree.
       Do not push the 203-commit private development history, which contains
       household identifiers in older revisions.
 - [x] Verify the complete public tree contains no credentials, private network
@@ -104,11 +104,11 @@ directory do not identify a missing runtime dependency or payload collision.
 - [x] Run `packaging/aur/prepare-local-source.sh`; review the deterministic
       source archive, updated checksum, and regenerated `.SRCINFO`.
 - [x] Run `packaging/aur/check-release-gate.sh` successfully on a clean tree.
-- [ ] Create `Mr-Tao/soundtouch-pipewire` from the sanitized history, push the
+- [x] Create `Mr-Tao/soundtouch-pipewire` from the sanitized history, push the
       release commit and signed `v0.1.0` tag, and upload the exact generated
       source archive as the release asset referenced by the PKGBUILD.
-- [ ] Create the separate AUR `soundtouch-pipewire` packagebase from only the
+- [x] Create the separate AUR `soundtouch-pipewire` packagebase from only the
       reviewed packaging files, root MIT license, and required patch notices;
       verify its source URL before pushing.
-- [ ] Verify the public GitHub release asset checksum from a fresh download and
+- [x] Verify the public GitHub release asset checksum from a fresh download and
       run `makepkg --verifysource --skippgpcheck` from the final AUR tree.
