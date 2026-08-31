@@ -27,7 +27,7 @@ pkgbase = soundtouch-pipewire
 	makedepends = pipewire-audio=1:1.6.8
 	makedepends = pkgconf
 	makedepends = rust
-	makedepends = wireplumber>=0.5.15
+	makedepends = libwireplumber>=0.5.15
 	source = soundtouch-pipewire-0.1.0.tar.gz::https://github.com/Mr-Tao/soundtouch-pipewire/releases/download/v0.1.0/soundtouch-pipewire-0.1.0.tar.gz
 	source = pipewire-1.6.8.tar.gz::https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/1.6.8/pipewire-1.6.8.tar.gz
 	source = 0001-pipewire-raop-free-pending-messages.patch
@@ -88,4 +88,4 @@ pkgname = soundtouch-pipewire-control
 	depends = gtk4
 	depends = hicolor-icon-theme
 	depends = libgcc
-	depends = wireplumber>=0.5.15
+	depends = libwireplumber>=0.5.15

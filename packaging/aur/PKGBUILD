@@ -50,7 +50,7 @@ makedepends=(
   "pipewire-audio=${_pipewire_pkgver}"
   'pkgconf'
   'rust'
-  'wireplumber>=0.5.15'
+  'libwireplumber>=0.5.15'
 )
 checkdepends=(
   'appstream'
@@ -291,7 +291,7 @@ package_soundtouch-pipewire-control() {
     'gtk4'
     'hicolor-icon-theme'
     'libgcc'
-    'wireplumber>=0.5.15'
+    'libwireplumber>=0.5.15'
   )
 
   _assert_release_gate
