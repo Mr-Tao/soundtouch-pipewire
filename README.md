@@ -75,6 +75,11 @@ controller, zones, stereo pairs, MPRIS router, and virtual-zone operations are
 not connected to `service-v2`; PipeWire Device Routes are its supported control
 surface.
 
+Installing a published build on a real desktop is governed separately by the
+[`public package acceptance contract`](docs/public-package-acceptance-contract.md).
+It keeps distribution, rollback, and ordinary-session evidence out of the v2
+runtime state-machine contracts.
+
 The legacy `status` command and GTK controller do not describe `service-v2`.
 On startup, after exclusive-lock acquisition, v2 removes any stale v1 runtime
 status so those tools fail unavailable instead of reporting obsolete state.

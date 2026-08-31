@@ -81,4 +81,8 @@ force it onto trivial edits or simple questions.
 - Do not install packages, restart services, publish, push, change
   `_release_state`, or bypass legal/provenance gates unless the parent task
   explicitly authorizes that scope.
+- Apply `docs/public-package-acceptance-contract.md` when a published package is
+  installed on a real desktop. Start with ordinary commands and one concrete
+  hypothesis; add capture or reusable tooling only after an observed failure
+  demonstrates that it is needed.
 - Preserve unrelated user changes and ignored local build/package artifacts.

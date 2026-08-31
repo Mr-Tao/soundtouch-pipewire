@@ -1,6 +1,9 @@
 # Arch/AUR packaging
 
-Status: **validated release candidate for v0.1.0 publication**.
+Status: **v0.1.0 published as AUR package release 0.1.0-64**.
+
+Real-desktop upgrades follow the
+[`public package acceptance contract`](../../docs/public-package-acceptance-contract.md).
 
 The split package coexists with the official Arch packages. Both binary
 packages have empty `provides`, `conflicts`, and `replaces` arrays and do not
@@ -185,7 +188,7 @@ service, and canary use the same instance lock:
 
 ```sh
 soundtouch-pipewire doctor
-soundtouch-pipewire direct-v2 --device 001122aabbcc
+soundtouch-pipewire direct-v2 --device 020000000001
 ```
 
 The selected receiver must be admitted by the same configuration policy. Do
@@ -200,7 +203,8 @@ applied:
 ```sh
 soundtouch-pipewire migrate-stock-discovery
 soundtouch-pipewire migrate-stock-discovery --apply
-systemctl --user restart pipewire.service
+systemctl --user restart \
+  pipewire.service pipewire-pulse.service wireplumber.service
 soundtouch-pipewire doctor
 ```
 
