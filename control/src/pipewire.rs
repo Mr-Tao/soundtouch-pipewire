@@ -3,7 +3,7 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
-use wireplumber::core::ObjectFeatures;
+use wireplumber::core::{Object, ObjectFeatures};
 use wireplumber::prelude::*;
 use wireplumber::pw::{Device, Node};
 use wireplumber::registry::{Interest, ObjectManager};
@@ -265,8 +265,9 @@ impl PipeWireClient {
             normalize_device_id(&receiver.device_id).ok_or(MatchError::InvalidDeviceId)?;
         let devices = self
             .objects
-            .objects::<Device>()
+            .objects::<Object>()
             .into_iter()
+            .filter_map(|object| object.downcast::<Device>().ok())
             .filter(|device| {
                 device.get_pw_property("device.name").as_deref()
                     == Some(receiver.pipewire_device_name.as_str())
@@ -280,8 +281,9 @@ impl PipeWireClient {
             .collect::<Vec<_>>();
         let nodes = self
             .objects
-            .objects::<Node>()
+            .objects::<Object>()
             .into_iter()
+            .filter_map(|object| object.downcast::<Node>().ok())
             .filter(|node| {
                 node.get_pw_property("node.name").as_deref()
                     == Some(receiver.pipewire_node_name.as_str())
