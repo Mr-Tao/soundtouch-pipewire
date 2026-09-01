@@ -1,6 +1,6 @@
 # Arch/AUR packaging
 
-Status: **v0.1.0-65 desktop-integration candidate; complete package and live
+Status: **v0.1.0-66 desktop-integration candidate; complete package and live
 desktop validation is required before publication**.
 
 The split package coexists with the official Arch packages. Both binary
@@ -124,13 +124,13 @@ Before installing, inspect the package:
 
 ```sh
 pacman -Qip \
-  ./soundtouch-pipewire-0.1.0-65-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-65-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-65-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.0-66-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-66-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.0-66-x86_64.pkg.tar.zst
 namcap PKGBUILD \
-  ./soundtouch-pipewire-0.1.0-65-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-65-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-65-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.0-66-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-66-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.0-66-x86_64.pkg.tar.zst
 ```
 
 Confirm that `Provides`, `Conflicts With`, and `Replaces` are all `None` and
@@ -231,8 +231,8 @@ directory.
 
 ```sh
 sudo pacman -U \
-  ./soundtouch-pipewire-0.1.0-65-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-65-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.0-66-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.0-66-x86_64.pkg.tar.zst
 soundtouch-pipewire-control
 ```
 
