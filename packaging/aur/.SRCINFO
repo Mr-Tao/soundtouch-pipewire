@@ -1,6 +1,6 @@
 pkgbase = soundtouch-pipewire
 	pkgver = 0.1.0
-	pkgrel = 65
+	pkgrel = 66
 	url = https://github.com/Mr-Tao/soundtouch-pipewire
 	arch = x86_64
 	license = MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1
@@ -43,7 +43,7 @@ pkgbase = soundtouch-pipewire
 	source = 0011-pipewire-raop-contract2-props-normalizer.patch
 	source = soundtouch-pipewire.service
 	source = soundtouch-pipewire.conf.example
-	sha256sums = 99c488c2f40401684e75f9977eb2db4cf22b6aa12c2f4abcc9ab70f5e1d151b1
+	sha256sums = 74e2dd7ddbe8922338b1d6d01253b218f7359b676e11352d359bd214dc6d745d
 	sha256sums = 8181172a1d95131f6af8bbc0b98f90b2a33349b042b84c3ce57dd5d11348cc58
 	sha256sums = 4dd5fbf8ae0853866a9c88c8c86ae96b53347c998c9aa564bd92051cc3227120
 	sha256sums = 484fad982e6e8ae850cf69d19868739933d2662c51fd213b8552f2698d932c18
@@ -82,7 +82,7 @@ pkgname = soundtouch-pipewire
 pkgname = soundtouch-pipewire-control
 	pkgdesc = GTK status and hardware-volume client for SoundTouch PipeWire outputs
 	license = MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1
-	depends = soundtouch-pipewire=0.1.0-65
+	depends = soundtouch-pipewire=0.1.0-66
 	depends = glib2
 	depends = glibc
 	depends = gtk4
