@@ -565,6 +565,68 @@ mod tests {
     }
 
     #[test]
+    fn volume_then_mute_carries_both_generations_and_retires_only_them() {
+        let mut scheduler = Scheduler::new(tuple(10, false), 1);
+        let first = scheduler.edit_volume(20, 0).dispatch.unwrap();
+        assert_eq!(scheduler.edit_mute(true, 50).dispatch, None);
+        assert_eq!(scheduler.end_gesture(60).dispatch, None);
+        assert_eq!(
+            scheduler.display(),
+            RouteTuple {
+                volume: 20,
+                muted: true
+            }
+        );
+
+        assert_eq!(scheduler.sync_completed(first.id, true, 100).dispatch, None);
+        let final_dispatch = scheduler.tick(200).dispatch.unwrap();
+        assert_ne!(final_dispatch.id, first.id);
+        assert_eq!(
+            final_dispatch.tuple,
+            RouteTuple {
+                volume: 20,
+                muted: true
+            }
+        );
+        assert_eq!(
+            scheduler
+                .sync_completed(final_dispatch.id, true, 210)
+                .dispatch,
+            None
+        );
+
+        scheduler.edit_volume(30, 220);
+        scheduler.apply_confirmation(tuple(18, false), 2, 230);
+        assert_eq!(
+            scheduler.display(),
+            RouteTuple {
+                volume: 30,
+                muted: false
+            }
+        );
+    }
+
+    #[test]
+    fn successful_sync_without_confirmation_stays_optimistic_until_timeout() {
+        let mut scheduler = Scheduler::new(tuple(10, false), 1);
+        let dispatch = scheduler.edit_volume(20, 0).dispatch.unwrap();
+        scheduler.end_gesture(1);
+        assert_eq!(
+            scheduler.sync_completed(dispatch.id, true, 2),
+            Update::none()
+        );
+        assert_eq!(scheduler.display().volume, 20);
+        assert!(scheduler.has_local_intent());
+        assert_eq!(scheduler.tick(2_999), Update::none());
+
+        let timeout = scheduler.tick(3_000);
+        assert_eq!(timeout.dispatch, None);
+        assert_eq!(timeout.failure, Some(Failure::Timeout));
+        assert_eq!(scheduler.display().volume, 10);
+        assert!(!scheduler.has_local_intent());
+    }
+
+    #[test]
     fn invalidation_discards_all_local_state() {
         let mut scheduler = Scheduler::new(tuple(10, false), 1);
         scheduler.edit_volume(80, 0);

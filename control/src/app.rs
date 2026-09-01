@@ -682,6 +682,20 @@ impl ReceiverRow {
         self.status.set_label(&status);
         self.root
             .set_tooltip_text((!snapshot.detail.is_empty()).then_some(snapshot.detail.as_str()));
+        let volume_label = format!(
+            "{} — {}",
+            tr("Hardware volume, 0 to 100"),
+            snapshot.display_name
+        );
+        let mute_label = format!("{} — {}", tr("Mute"), snapshot.display_name);
+        self.root.update_property(&[
+            gtk::accessible::Property::Label(&snapshot.display_name),
+            gtk::accessible::Property::Description(&snapshot.detail),
+        ]);
+        self.volume
+            .update_property(&[gtk::accessible::Property::Label(&volume_label)]);
+        self.mute
+            .update_property(&[gtk::accessible::Property::Label(&mute_label)]);
     }
 
     fn finish_gesture(self: &Rc<Self>) {
