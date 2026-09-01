@@ -127,6 +127,8 @@ static gchar *quoted(const gchar *value) {
   if (value == NULL)
     return NULL;
   encoded_length = spa_json_encode_string(NULL, 0, value);
+  if (G_UNLIKELY(encoded_length < 0 || encoded_length >= G_MAXINT))
+    g_error("JSON-encoded PipeWire module argument exceeds SPA int capacity");
   encoded = g_malloc((gsize)encoded_length + 1);
   spa_json_encode_string(encoded, encoded_length + 1, value);
   return encoded;

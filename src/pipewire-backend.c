@@ -693,8 +693,13 @@ gfloat stpw_pipewire_initial_linear(guint percent) {
 
 static gchar *quoted(const gchar *value) {
   const gchar *safe_value = value != NULL ? value : "";
-  gint encoded_length = spa_json_encode_string(NULL, 0, safe_value);
-  gchar *encoded = g_malloc((gsize)encoded_length + 1);
+  gint encoded_length;
+  gchar *encoded;
+
+  encoded_length = spa_json_encode_string(NULL, 0, safe_value);
+  if (G_UNLIKELY(encoded_length < 0 || encoded_length >= G_MAXINT))
+    g_error("JSON-encoded PipeWire module argument exceeds SPA int capacity");
+  encoded = g_malloc((gsize)encoded_length + 1);
 
   spa_json_encode_string(encoded, encoded_length + 1, safe_value);
   return encoded;
