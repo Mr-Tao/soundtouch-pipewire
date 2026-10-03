@@ -83,6 +83,16 @@ PipeWire 1.6.8 a reentrant empty Props write technically vetoes them before the
 adapter can apply the outer Pod, while unrelated Props return untouched. A
 failed apply fails the local stream closed. Contracts 3 and 5 and other
 volume-control modes remain unchanged.
+The private PipeWire module source remains pinned to 1.6.8. Runtime, build,
+and test dependencies accept stock PipeWire versions from 1.6.8 up to, but
+excluding, 1.7 (Arch epoch 1). The build guard checks this compatibility range
+independently of the source archive version. PipeWire 1.6.9 was verified with
+the pkgrel-67 modules in the existing isolated Route and stream tests; later
+1.6.x releases rely on the upstream series ABI policy and rolling Arch CI,
+not individual hardware acceptance. Extending the range requires revalidation.
+Updating the stock runtime does not backport upstream RAOP fixes into the
+private module; that remains a separate source update.
+
 The runtime requires WirePlumber 0.5.15 or newer; the isolated policy test
 verifies save/restore across Device removal and republication in one
 WirePlumber process. Contracts 3 and 5 reject a separate AES67 sender loop.
@@ -104,6 +114,20 @@ the later build and tests force Cargo offline so a missing dependency fails
 instead of silently reaching the network. The environment override permits a
 local release-candidate build while the explicit public-release gate remains
 closed.
+
+## Continuous integration
+
+The GitHub Actions workflow builds both split packages on rolling Arch for
+pushes, pull requests, manual runs, and a weekly compatibility check. It uses
+an unprivileged builder and the existing package `check()` path: companion
+tests, isolated PipeWire/WirePlumber Route and stream tests, seven private
+module tests, locked Rust tests, formatting, Clippy, and desktop/AppStream
+validation. It also checks the release gate and rejects stale source checksums
+or `.SRCINFO` after generating the canonical source archive. Commit source
+changes first, run `prepare-local-source.sh`, and commit its metadata updates.
+No household speakers or desktop user services are used. A green CI result
+does not establish physical-speaker acceptance or verify the published release
+asset; publication still requires the release checklist.
 
 The package `check()` function runs every Meson suite through
 `tools/run-meson-tests-clean-env.sh`. The helper starts Meson with an

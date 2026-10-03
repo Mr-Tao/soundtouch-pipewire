@@ -1,13 +1,16 @@
 pkgbase = soundtouch-pipewire
 	pkgver = 0.1.0
-	pkgrel = 67
+	pkgrel = 68
 	url = https://github.com/Mr-Tao/soundtouch-pipewire
 	arch = x86_64
 	license = MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1
 	checkdepends = appstream
 	checkdepends = desktop-file-utils
 	checkdepends = libpulse
-	checkdepends = pipewire-pulse=1:1.6.8
+	checkdepends = lua
+	checkdepends = pipewire-pulse>=1:1.6.8
+	checkdepends = pipewire-pulse<1:1.7
+	checkdepends = wireplumber>=0.5.15
 	makedepends = avahi
 	makedepends = clang
 	makedepends = gettext
@@ -15,7 +18,8 @@ pkgbase = soundtouch-pipewire
 	makedepends = glib2-devel
 	makedepends = gtk4
 	makedepends = json-glib
-	makedepends = libpipewire=1:1.6.8
+	makedepends = libpipewire>=1:1.6.8
+	makedepends = libpipewire<1:1.7
 	makedepends = libsoup3
 	makedepends = libxml2
 	makedepends = meson
@@ -23,8 +27,10 @@ pkgbase = soundtouch-pipewire
 	makedepends = openssl
 	makedepends = opus
 	makedepends = patchelf
-	makedepends = pipewire=1:1.6.8
-	makedepends = pipewire-audio=1:1.6.8
+	makedepends = pipewire>=1:1.6.8
+	makedepends = pipewire<1:1.7
+	makedepends = pipewire-audio>=1:1.6.8
+	makedepends = pipewire-audio<1:1.7
 	makedepends = pkgconf
 	makedepends = rust
 	makedepends = libwireplumber>=0.5.15
@@ -68,13 +74,16 @@ pkgname = soundtouch-pipewire
 	depends = glibc
 	depends = json-glib
 	depends = libgcc
-	depends = libpipewire=1:1.6.8
+	depends = libpipewire>=1:1.6.8
+	depends = libpipewire<1:1.7
 	depends = libsoup3
 	depends = libxml2
 	depends = openssl
 	depends = opus
-	depends = pipewire=1:1.6.8
-	depends = pipewire-audio=1:1.6.8
+	depends = pipewire>=1:1.6.8
+	depends = pipewire<1:1.7
+	depends = pipewire-audio>=1:1.6.8
+	depends = pipewire-audio<1:1.7
 	depends = systemd
 	depends = wireplumber>=0.5.15
 	optdepends = soundtouch-pipewire-control: v2 GTK status and hardware-volume client
@@ -82,7 +91,7 @@ pkgname = soundtouch-pipewire
 pkgname = soundtouch-pipewire-control
 	pkgdesc = GTK status and hardware-volume client for SoundTouch PipeWire outputs
 	license = MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1
-	depends = soundtouch-pipewire=0.1.0-67
+	depends = soundtouch-pipewire=0.1.0-68
 	depends = glib2
 	depends = glibc
 	depends = gtk4
