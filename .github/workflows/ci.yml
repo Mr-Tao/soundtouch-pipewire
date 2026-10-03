@@ -48,6 +48,8 @@ jobs:
             ./check-release-gate.sh
             makepkg --cleanbuild --force --noconfirm --log
             cd "$1"
+            # cargo metadata needs all locked target packages before filtering.
+            cargo fetch --locked --manifest-path control/Cargo.toml
             cargo about generate --manifest-path control/Cargo.toml \
               --config control/about.toml --frozen --fail \
               control/about.hbs > /tmp/rust-dependencies.html
