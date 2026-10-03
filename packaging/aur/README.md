@@ -1,7 +1,9 @@
 # Arch/AUR packaging
 
-Status: **v0.1.0-67 desktop-integration candidate; complete package and live
-desktop validation is required before publication**.
+Status: **v0.1.1 release candidate**. The unchanged v2 behavior has the
+recorded pkgrel-67 desktop acceptance; pkgrel 68 passed the complete GitHub
+Arch build with stock PipeWire 1.6.9. The versioned release must pass CI before
+its immutable source archive and AUR metadata are published.
 
 The split package coexists with the official Arch packages. Both binary
 packages have empty `provides`, `conflicts`, and `replaces` arrays and do not
@@ -148,13 +150,13 @@ Before installing, inspect the package:
 
 ```sh
 pacman -Qip \
-  ./soundtouch-pipewire-0.1.0-67-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-67-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-67-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.1-1-x86_64.pkg.tar.zst
 namcap PKGBUILD \
-  ./soundtouch-pipewire-0.1.0-67-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-67-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-67-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.1-1-x86_64.pkg.tar.zst
 ```
 
 Confirm that `Provides`, `Conflicts With`, and `Replaces` are all `None` and
@@ -255,8 +257,8 @@ directory.
 
 ```sh
 sudo pacman -U \
-  ./soundtouch-pipewire-0.1.0-67-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-67-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.1-1-x86_64.pkg.tar.zst
 soundtouch-pipewire-control
 ```
 

@@ -5,8 +5,8 @@ pkgname=(
   'soundtouch-pipewire'
   'soundtouch-pipewire-control'
 )
-pkgver=0.1.0
-pkgrel=68
+pkgver=0.1.1
+pkgrel=1
 arch=('x86_64')
 url='https://github.com/Mr-Tao/soundtouch-pipewire'
 license=('MIT AND Unicode-3.0 AND LicenseRef-STPW-SoundTouch-Supplement-1')
