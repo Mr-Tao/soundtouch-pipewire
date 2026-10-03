@@ -24,7 +24,7 @@ jobs:
       - name: Install build and test dependencies
         run: >-
           pacman -Syu --noconfirm --needed
-          git ca-certificates pacman-contrib
+          git ca-certificates pacman-contrib cargo-about
           avahi clang gettext glib2 glib2-devel gtk4 json-glib
           libpipewire libsoup3 libxml2 meson ninja openssl opus patchelf
           pipewire pipewire-audio pipewire-pulse pkgconf rust libwireplumber
@@ -47,4 +47,9 @@ jobs:
             git diff --exit-code -- PKGBUILD .SRCINFO
             ./check-release-gate.sh
             makepkg --cleanbuild --force --noconfirm --log
+            cd "$1"
+            cargo about generate --manifest-path control/Cargo.toml \
+              --config control/about.toml --frozen --fail \
+              control/about.hbs > /tmp/rust-dependencies.html
+            cmp licenses/RUST-DEPENDENCIES.html /tmp/rust-dependencies.html
           ' bash "$GITHUB_WORKSPACE"
