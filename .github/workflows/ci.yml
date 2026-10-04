@@ -42,16 +42,16 @@ jobs:
         run: |
           # shellcheck disable=SC2016 # Expanded by the builder's shell.
           runuser -u builder -- bash -euc '
-            cd "$1/packaging/aur"
-            ./prepare-local-source.sh
-            git diff --exit-code -- PKGBUILD .SRCINFO
-            ./check-release-gate.sh
-            makepkg --cleanbuild --force --noconfirm --log
             cd "$1"
             # cargo metadata needs all locked target packages before filtering.
             cargo fetch --locked --manifest-path control/Cargo.toml
             cargo about generate --manifest-path control/Cargo.toml \
               --config control/about.toml --frozen --fail \
-              control/about.hbs > /tmp/rust-dependencies.html
+              --output-file /tmp/rust-dependencies.html control/about.hbs
             cmp licenses/RUST-DEPENDENCIES.html /tmp/rust-dependencies.html
+            cd packaging/aur
+            ./prepare-local-source.sh
+            git diff --exit-code -- PKGBUILD .SRCINFO
+            ./check-release-gate.sh
+            makepkg --cleanbuild --force --noconfirm --log
           ' bash "$GITHUB_WORKSPACE"
