@@ -21,6 +21,8 @@ typedef struct {
 typedef void (*StpwDirectVolumeV2WapiReportFunc)(
     StpwDirectVolumeV2WapiDriver *self,
     const StpwDirectVolumeV2WapiReport *report, gpointer user_data);
+typedef void (*StpwDirectVolumeV2WapiBusyFunc)(
+    StpwDirectVolumeV2WapiDriver *self, gboolean busy, gpointer user_data);
 
 StpwDirectVolumeV2WapiDriver *stpw_direct_volume_v2_wapi_driver_new(
     StpwWapiClient *client, StpwDirectVolumeV2WapiReportFunc report_func,
@@ -39,6 +41,12 @@ void stpw_direct_volume_v2_wapi_driver_refresh(
     StpwDirectVolumeV2WapiDriver *self);
 /* Event-channel loss retains active work but invalidates write authority. */
 void stpw_direct_volume_v2_wapi_driver_invalidate(
+    StpwDirectVolumeV2WapiDriver *self);
+/* Reports exact transitions of the driver's one bounded WAPI operation. */
+void stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+    StpwDirectVolumeV2WapiDriver *self, StpwDirectVolumeV2WapiBusyFunc busy,
+    gpointer busy_data, GDestroyNotify busy_destroy);
+gboolean stpw_direct_volume_v2_wapi_driver_is_busy(
     StpwDirectVolumeV2WapiDriver *self);
 
 G_END_DECLS

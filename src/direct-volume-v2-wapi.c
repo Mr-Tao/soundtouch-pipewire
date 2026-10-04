@@ -23,6 +23,10 @@ struct _StpwDirectVolumeV2WapiDriver {
   StpwDirectVolumeV2WapiReportFunc report_func;
   gpointer report_data;
   GDestroyNotify report_destroy;
+  StpwDirectVolumeV2WapiBusyFunc busy_func;
+  gpointer busy_data;
+  GDestroyNotify busy_destroy;
+  gboolean reported_busy;
   gboolean disposed;
 };
 
@@ -31,6 +35,19 @@ G_DEFINE_TYPE(StpwDirectVolumeV2WapiDriver, stpw_direct_volume_v2_wapi_driver,
 
 static void consume_effects(StpwDirectVolumeV2WapiDriver *self,
                             StpwDirectVolumeV2Effects effects);
+
+static void report_busy_transition(StpwDirectVolumeV2WapiDriver *self) {
+  gboolean busy = self->operation != OPERATION_NONE;
+
+  if (busy == self->reported_busy)
+    return;
+  self->reported_busy = busy;
+  if (self->busy_func != NULL) {
+    g_object_ref(self);
+    self->busy_func(self, busy, self->busy_data);
+    g_object_unref(self);
+  }
+}
 
 static Completion *completion_new(StpwDirectVolumeV2WapiDriver *self,
                                   Operation operation) {
@@ -128,6 +145,7 @@ static void start_action(StpwDirectVolumeV2WapiDriver *self,
 static void consume_effects(StpwDirectVolumeV2WapiDriver *self,
                             StpwDirectVolumeV2Effects effects) {
   start_action(self, effects);
+  report_busy_transition(self);
   if ((effects.publish || effects.degraded) && self->report_func != NULL) {
     StpwDirectVolumeV2WapiReport report = {
         .publish = effects.publish,
@@ -147,11 +165,16 @@ static void stpw_direct_volume_v2_wapi_driver_dispose(GObject *object) {
   if (!self->disposed) {
     GDestroyNotify report_destroy = self->report_destroy;
     gpointer report_data = self->report_data;
+    GDestroyNotify busy_destroy = self->busy_destroy;
+    gpointer busy_data = self->busy_data;
 
     self->disposed = TRUE;
     self->report_func = NULL;
     self->report_data = NULL;
     self->report_destroy = NULL;
+    self->busy_func = NULL;
+    self->busy_data = NULL;
+    self->busy_destroy = NULL;
     if (self->cancellable != NULL)
       g_cancellable_cancel(self->cancellable);
     g_clear_object(&self->cancellable);
@@ -159,6 +182,8 @@ static void stpw_direct_volume_v2_wapi_driver_dispose(GObject *object) {
     g_clear_object(&self->client);
     if (report_destroy != NULL)
       report_destroy(report_data);
+    if (busy_destroy != NULL)
+      busy_destroy(busy_data);
   }
 
   G_OBJECT_CLASS(stpw_direct_volume_v2_wapi_driver_parent_class)
@@ -250,4 +275,26 @@ void stpw_direct_volume_v2_wapi_driver_invalidate(
   if (self->disposed)
     return;
   consume_effects(self, stpw_direct_volume_v2_invalidate(self->core));
+}
+
+void stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+    StpwDirectVolumeV2WapiDriver *self, StpwDirectVolumeV2WapiBusyFunc busy,
+    gpointer busy_data, GDestroyNotify busy_destroy) {
+  GDestroyNotify old_destroy;
+  gpointer old_data;
+
+  g_return_if_fail(STPW_IS_DIRECT_VOLUME_V2_WAPI_DRIVER(self));
+  old_destroy = self->busy_destroy;
+  old_data = self->busy_data;
+  self->busy_func = busy;
+  self->busy_data = busy_data;
+  self->busy_destroy = busy_destroy;
+  if (old_destroy != NULL)
+    old_destroy(old_data);
+}
+
+gboolean stpw_direct_volume_v2_wapi_driver_is_busy(
+    StpwDirectVolumeV2WapiDriver *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_VOLUME_V2_WAPI_DRIVER(self), FALSE);
+  return self->operation != OPERATION_NONE;
 }

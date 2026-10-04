@@ -97,6 +97,38 @@ WirePlumber, and systemd dependencies and the controller's exact daemon
 dependency. The loader-library warning and empty generated debug-source
 directory do not identify a missing runtime dependency or payload collision.
 
+## V2 desktop acceptance
+
+- [x] Build pkgrel 67 from the deterministic source archive at exact commit
+      `e926073` in an immutable clean Arch container. The transferred input
+      manifest matched before and after the build; 40 companion tests passed,
+      two intentional invalid-input tests failed as expected, all seven private
+      PipeWire-module tests passed, and all 27 Rust tests plus formatting and
+      Clippy passed.
+- [x] Independently compile exact commit `e926073` in a fresh checkout and run
+      the required clean-environment Meson wrapper: all 42 registered tests
+      completed with 40 passes, two expected failures, and no unexpected
+      failure. The independent runner's separate Cargo rerun was blocked by
+      its disposable-filesystem quota; the exact clean package build above is
+      the executable Cargo evidence.
+- [x] Install the exact pkgrel-67 daemon and control packages locally. Installed
+      binary hashes matched their package payloads, `pacman -Qkk` reported no
+      altered files, all four admitted receivers became active, and both user
+      processes remained active with zero restarts and no coredump.
+- [x] Verify the Xfce StatusNotifierItem and its standard Open, About, and Quit
+      menu; confirm through one persistent AT-SPI connection that the window,
+      receiver rows, hardware-volume sliders, and mute controls have distinct
+      accessible names. Closing the window left the client and indicator
+      running.
+- [x] Verify one persistent service outage and recovery generated exactly one
+      notification for each transition, with the recovery replacing the
+      outage notification rather than stacking a second item.
+- [x] On one idle, ungrouped receiver with no audio stream, prove the exact
+      D-Bus receiver, PipeWire Device, Node, and immutable receiver-ID match.
+      One slider step was confirmed by a newer D-Bus revision and fresh
+      receiver readback within 0.2 seconds, then restored by the same path and
+      verified stable after three seconds.
+
 ## Publication
 
 - [x] Replace `_release_state` with `READY` only in the final reviewed release

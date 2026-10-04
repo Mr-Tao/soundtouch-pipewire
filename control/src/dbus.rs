@@ -1,1034 +1,387 @@
-use std::cell::{Cell, RefCell};
+// SPDX-License-Identifier: MIT
+
+use std::cell::RefCell;
 use std::rc::{Rc, Weak};
-use std::time::Duration;
 
 use gio::prelude::*;
-use glib::variant::{ObjectPath, ToVariant};
 
 use crate::model::{
-    DBUS_NAME, DBUS_ROOT, LogicalMember, MANAGER_INTERFACE, ObjectKind, ServiceSnapshot,
-    ServiceState, snapshot,
+    ConfirmedTuple, DBUS_NAME, DBUS_ROOT, DiscoveryHealth, Lifecycle, MANAGER_INTERFACE,
+    RECEIVER_INTERFACE, ReceiverSnapshot, SUPPORTED_API_VERSION, ServiceSnapshot, ServiceState,
+    normalize_device_id,
 };
+
+const OBJECT_MANAGER_FLAGS: gio::DBusObjectManagerClientFlags =
+    gio::DBusObjectManagerClientFlags::DO_NOT_AUTO_START;
+const PROXY_FLAGS: gio::DBusProxyFlags = gio::DBusProxyFlags::DO_NOT_AUTO_START;
 
 type SnapshotCallback = dyn Fn(ServiceSnapshot);
 
-const CALL_TIMEOUT_MSEC: i32 = 30_000;
-const OBJECT_MANAGER_FLAGS: gio::DBusObjectManagerClientFlags =
-    gio::DBusObjectManagerClientFlags::DO_NOT_AUTO_START;
-const MANAGER_PROXY_FLAGS: gio::DBusProxyFlags = gio::DBusProxyFlags::DO_NOT_AUTO_START;
-const SYSTEMD_DBUS_NAME: &str = "org.freedesktop.systemd1";
-const SYSTEMD_DBUS_PATH: &str = "/org/freedesktop/systemd1";
-const SYSTEMD_MANAGER_INTERFACE: &str = "org.freedesktop.systemd1.Manager";
-const SERVICE_UNIT: &str = "soundtouch-pipewire.service";
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Mutation {
-    Reconcile,
-    CreateZone {
-        name: String,
-        members: Vec<LogicalMember>,
-        preferred_master: Option<LogicalMember>,
-        conflict_policy: String,
-        resume_policy: String,
-        auto_heal: String,
-    },
-    CreateStereoPair {
-        name: String,
-        left_device_id: String,
-        right_device_id: String,
-    },
-    ImportTopology {
-        observed_path: String,
-        name: String,
-    },
-    UpdateDefaults {
-        conflict_policy: String,
-        resume_policy: String,
-        auto_heal: bool,
-    },
-    SetManageAllVerified {
-        expected_digest: String,
-        value: bool,
-    },
-    SetDevicePolicy {
-        expected_digest: String,
-        device_id: String,
-        mode: String,
-    },
-    UpdateZone {
-        path: String,
-        expected_revision: u64,
-        name: String,
-        members: Vec<LogicalMember>,
-        preferred_master: Option<LogicalMember>,
-        conflict_policy: String,
-        resume_policy: String,
-        auto_heal: String,
-    },
-    ActivateZone {
-        path: String,
-        take_over: bool,
-    },
-    DissolveZone {
-        path: String,
-    },
-    DeleteZone {
-        path: String,
-        expected_revision: u64,
-    },
-    UpdateStereoPair {
-        path: String,
-        expected_revision: u64,
-        name: String,
-        left_device_id: String,
-        right_device_id: String,
-    },
-    CreateStereoPairOnHardware {
-        path: String,
-        take_over: bool,
-    },
-    DissolveStereoPair {
-        path: String,
-    },
-    DeleteStereoPair {
-        path: String,
-        expected_revision: u64,
-    },
-}
-
-struct CallSpec {
-    path: String,
-    interface: String,
-    method: &'static str,
-    parameters: glib::Variant,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SubmittedOperation {
-    pub path: String,
-    pub request_id: String,
-    pub owner_generation: String,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct PinnedOwner(String);
-
-impl PinnedOwner {
-    fn as_str(&self) -> &str {
-        &self.0
-    }
-
-    fn into_string(self) -> String {
-        self.0
-    }
-}
-
-fn require_current_owner(
-    expected_owner_generation: &str,
-    current_owner_generation: &str,
-) -> Result<PinnedOwner, glib::Error> {
-    if expected_owner_generation != current_owner_generation {
-        return Err(client_error(
-            gio::IOErrorEnum::NotFound,
-            "The request belongs to a previous control-service generation",
-        ));
-    }
-    Ok(PinnedOwner(expected_owner_generation.to_owned()))
-}
-
-impl Mutation {
-    fn call_spec(&self, request_id: &str) -> Result<CallSpec, glib::Error> {
-        let manager = |method, parameters| CallSpec {
-            path: DBUS_ROOT.to_owned(),
-            interface: MANAGER_INTERFACE.to_owned(),
-            method,
-            parameters,
-        };
-        let child = |path: &str, kind: ObjectKind, method, parameters| CallSpec {
-            path: path.to_owned(),
-            interface: kind.interface_name(),
-            method,
-            parameters,
-        };
-        let members = |members: &[LogicalMember]| {
-            members
-                .iter()
-                .map(LogicalMember::as_tuple)
-                .collect::<Vec<_>>()
-        };
-        let preferred = |preferred: &Option<LogicalMember>| {
-            preferred
-                .as_ref()
-                .map(LogicalMember::as_tuple)
-                .unwrap_or_else(|| (String::new(), String::new()))
-        };
-
-        Ok(match self {
-            Self::Reconcile => manager("Reconcile", (request_id,).to_variant()),
-            Self::CreateZone {
-                name,
-                members: selected,
-                preferred_master,
-                conflict_policy,
-                resume_policy,
-                auto_heal,
-            } => manager(
-                "CreateZone",
-                (
-                    request_id,
-                    name.as_str(),
-                    members(selected),
-                    preferred(preferred_master),
-                    conflict_policy.as_str(),
-                    resume_policy.as_str(),
-                    auto_heal.as_str(),
-                )
-                    .to_variant(),
-            ),
-            Self::CreateStereoPair {
-                name,
-                left_device_id,
-                right_device_id,
-            } => manager(
-                "CreateStereoPair",
-                (
-                    request_id,
-                    name.as_str(),
-                    left_device_id.as_str(),
-                    right_device_id.as_str(),
-                )
-                    .to_variant(),
-            ),
-            Self::ImportTopology {
-                observed_path,
-                name,
-            } => {
-                let path = ObjectPath::try_from(observed_path.as_str()).map_err(|_| {
-                    client_error(
-                        gio::IOErrorEnum::InvalidArgument,
-                        "Observed topology path is invalid",
-                    )
-                })?;
-                manager(
-                    "ImportTopology",
-                    (request_id, path, name.as_str()).to_variant(),
-                )
-            }
-            Self::UpdateDefaults {
-                conflict_policy,
-                resume_policy,
-                auto_heal,
-            } => manager(
-                "UpdateDefaults",
-                (
-                    request_id,
-                    conflict_policy.as_str(),
-                    resume_policy.as_str(),
-                    *auto_heal,
-                )
-                    .to_variant(),
-            ),
-            Self::SetManageAllVerified {
-                expected_digest,
-                value,
-            } => manager(
-                "SetManageAllVerified",
-                (request_id, expected_digest.as_str(), *value).to_variant(),
-            ),
-            Self::SetDevicePolicy {
-                expected_digest,
-                device_id,
-                mode,
-            } => manager(
-                "SetDevicePolicy",
-                (
-                    request_id,
-                    expected_digest.as_str(),
-                    device_id.as_str(),
-                    mode.as_str(),
-                )
-                    .to_variant(),
-            ),
-            Self::UpdateZone {
-                path,
-                expected_revision,
-                name,
-                members: selected,
-                preferred_master,
-                conflict_policy,
-                resume_policy,
-                auto_heal,
-            } => child(
-                path,
-                ObjectKind::Zone,
-                "Update",
-                (
-                    request_id,
-                    *expected_revision,
-                    name.as_str(),
-                    members(selected),
-                    preferred(preferred_master),
-                    conflict_policy.as_str(),
-                    resume_policy.as_str(),
-                    auto_heal.as_str(),
-                )
-                    .to_variant(),
-            ),
-            Self::ActivateZone { path, take_over } => child(
-                path,
-                ObjectKind::Zone,
-                "Activate",
-                (request_id, *take_over).to_variant(),
-            ),
-            Self::DissolveZone { path } => child(
-                path,
-                ObjectKind::Zone,
-                "Dissolve",
-                (request_id,).to_variant(),
-            ),
-            Self::DeleteZone {
-                path,
-                expected_revision,
-            } => child(
-                path,
-                ObjectKind::Zone,
-                "Delete",
-                (request_id, *expected_revision).to_variant(),
-            ),
-            Self::UpdateStereoPair {
-                path,
-                expected_revision,
-                name,
-                left_device_id,
-                right_device_id,
-            } => child(
-                path,
-                ObjectKind::StereoPair,
-                "Update",
-                (
-                    request_id,
-                    *expected_revision,
-                    name.as_str(),
-                    left_device_id.as_str(),
-                    right_device_id.as_str(),
-                )
-                    .to_variant(),
-            ),
-            Self::CreateStereoPairOnHardware { path, take_over } => child(
-                path,
-                ObjectKind::StereoPair,
-                "CreateOnHardware",
-                (request_id, *take_over).to_variant(),
-            ),
-            Self::DissolveStereoPair { path } => child(
-                path,
-                ObjectKind::StereoPair,
-                "Dissolve",
-                (request_id,).to_variant(),
-            ),
-            Self::DeleteStereoPair {
-                path,
-                expected_revision,
-            } => child(
-                path,
-                ObjectKind::StereoPair,
-                "Delete",
-                (request_id, *expected_revision).to_variant(),
-            ),
-        })
-    }
-}
-
-pub struct ControlClient {
+pub struct StatusClient {
     manager: RefCell<Option<gio::DBusObjectManagerClient>>,
     manager_proxy: RefCell<Option<gio::DBusProxy>>,
-    connecting: Cell<bool>,
+    authority: RefCell<OwnerLifecycle>,
     refresh_source: RefCell<Option<glib::SourceId>>,
-    retry_source: RefCell<Option<glib::SourceId>>,
     on_snapshot: Rc<SnapshotCallback>,
 }
 
-impl ControlClient {
+#[derive(Debug, Default, Eq, PartialEq)]
+struct OwnerLifecycle {
+    owner: Option<String>,
+    epoch: u64,
+}
+
+impl OwnerLifecycle {
+    fn follow(&mut self, next_owner: Option<String>) -> Option<u64> {
+        if self.owner == next_owner {
+            return None;
+        }
+        self.epoch = self.epoch.wrapping_add(1);
+        self.owner = next_owner;
+        Some(self.epoch)
+    }
+
+    fn accepts_epoch(&self, epoch: u64) -> bool {
+        self.epoch == epoch
+    }
+
+    fn accepts_owner_callback(&self, epoch: u64, owner: &str) -> bool {
+        self.accepts_epoch(epoch) && self.owner.as_deref() == Some(owner)
+    }
+}
+
+impl StatusClient {
     pub fn new(on_snapshot: impl Fn(ServiceSnapshot) + 'static) -> Rc<Self> {
         Rc::new(Self {
             manager: RefCell::new(None),
             manager_proxy: RefCell::new(None),
-            connecting: Cell::new(false),
+            authority: RefCell::new(OwnerLifecycle::default()),
             refresh_source: RefCell::new(None),
-            retry_source: RefCell::new(None),
             on_snapshot: Rc::new(on_snapshot),
         })
     }
 
     pub fn start(self: &Rc<Self>) {
-        self.connect();
+        let appeared = Rc::downgrade(self);
+        let vanished = Rc::downgrade(self);
+        let _watcher = gio::bus_watch_name(
+            gio::BusType::Session,
+            DBUS_NAME,
+            gio::BusNameWatcherFlags::NONE,
+            move |_, _, owner| {
+                if let Some(client) = appeared.upgrade() {
+                    client.follow_owner(Some(owner.to_string()));
+                }
+            },
+            move |_, _| {
+                if let Some(client) = vanished.upgrade() {
+                    client.follow_owner(None);
+                }
+            },
+        );
     }
 
-    pub fn refresh(self: &Rc<Self>) {
+    fn follow_owner(self: &Rc<Self>, next_owner: Option<String>) {
+        let Some(epoch) = self.authority.borrow_mut().follow(next_owner.clone()) else {
+            if next_owner.is_none() {
+                (self.on_snapshot)(ServiceSnapshot::absent(self.authority.borrow().epoch));
+            }
+            return;
+        };
+
+        self.manager.borrow_mut().take();
+        self.manager_proxy.borrow_mut().take();
         if let Some(source) = self.refresh_source.borrow_mut().take() {
             source.remove();
         }
-        let manager = self.manager.borrow();
-        let manager_proxy = self.manager_proxy.borrow();
-        if let (Some(manager), Some(manager_proxy)) = (manager.as_ref(), manager_proxy.as_ref()) {
-            (self.on_snapshot)(snapshot(manager, manager_proxy));
-        } else if !self.connecting.get() {
-            (self.on_snapshot)(ServiceSnapshot::offline());
-            self.connect();
-        }
-    }
 
-    fn schedule_refresh(self: &Rc<Self>) {
-        if self.refresh_source.borrow().is_some() {
+        let Some(owner) = next_owner else {
+            (self.on_snapshot)(ServiceSnapshot::absent(epoch));
             return;
-        }
+        };
+        (self.on_snapshot)(ServiceSnapshot::connecting(epoch, owner.clone()));
 
         let weak = Rc::downgrade(self);
-        let source = glib::idle_add_local_once(move || {
-            if let Some(client) = weak.upgrade() {
-                client.refresh_source.borrow_mut().take();
-                client.refresh();
-            }
-        });
-        self.refresh_source.replace(Some(source));
-    }
-
-    pub fn submit(
-        self: &Rc<Self>,
-        mutation: Mutation,
-        expected_owner_generation: &str,
-        callback: impl FnOnce(Result<SubmittedOperation, glib::Error>) + 'static,
-    ) {
-        let current_owner_generation = match self.compatible_owner_generation() {
-            Ok(owner_generation) => owner_generation,
-            Err(error) => {
-                callback(Err(error));
-                return;
-            }
-        };
-        let owner_generation =
-            match require_current_owner(expected_owner_generation, &current_owner_generation) {
-                Ok(owner_generation) => owner_generation,
-                Err(error) => {
-                    callback(Err(error));
-                    return;
-                }
-            };
-        let request_id = fresh_request_id();
-        let spec = match mutation.call_spec(&request_id) {
-            Ok(spec) => spec,
-            Err(error) => {
-                callback(Err(error));
-                return;
-            }
-        };
-        if let Err(error) = self.proxy_for(&spec.path, &spec.interface) {
-            callback(Err(error));
-            return;
-        }
-        let connection = match self.connection() {
-            Ok(connection) => connection,
-            Err(error) => {
-                callback(Err(error));
-                return;
-            }
-        };
-        let weak = Rc::downgrade(self);
-
-        glib::MainContext::default().spawn_local(async move {
-            /*
-             * Address the exact unique owner whose object snapshot was
-             * validated above. A GDBusProxy created for DBUS_NAME would
-             * otherwise follow a replacement owner if the daemon restarted
-             * between validation and dispatch, allowing a stale mutation to
-             * cross daemon generations.
-             */
-            let result = connection
-                .call_future(
-                    Some(owner_generation.as_str()),
-                    &spec.path,
-                    &spec.interface,
-                    spec.method,
-                    Some(&spec.parameters),
-                    None,
-                    gio::DBusCallFlags::NONE,
-                    CALL_TIMEOUT_MSEC,
-                )
-                .await
-                .and_then(operation_path_from_reply)
-                .map(|path| SubmittedOperation {
-                    path,
-                    request_id,
-                    owner_generation: owner_generation.into_string(),
-                });
-            callback(result);
-            refresh_weak(&weak);
-        });
-    }
-
-    pub fn cancel_operation(
-        self: &Rc<Self>,
-        operation_path: &str,
-        expected_owner_generation: &str,
-        callback: impl FnOnce(Result<bool, glib::Error>) + 'static,
-    ) {
-        let current_owner_generation = match self.compatible_owner_generation() {
-            Ok(owner_generation) => owner_generation,
-            Err(error) => {
-                callback(Err(error));
-                return;
-            }
-        };
-        let owner_generation =
-            match require_current_owner(expected_owner_generation, &current_owner_generation) {
-                Ok(owner_generation) => owner_generation,
-                Err(error) => {
-                    callback(Err(error));
-                    return;
-                }
-            };
-        let interface = ObjectKind::Operation.interface_name();
-        if let Err(error) = self.proxy_for(operation_path, &interface) {
-            callback(Err(error));
-            return;
-        }
-        let connection = match self.connection() {
-            Ok(connection) => connection,
-            Err(error) => {
-                callback(Err(error));
-                return;
-            }
-        };
-        let operation_path = operation_path.to_owned();
-        let weak = Rc::downgrade(self);
-
-        glib::MainContext::default().spawn_local(async move {
-            let result = connection
-                .call_future(
-                    Some(owner_generation.as_str()),
-                    &operation_path,
-                    &interface,
-                    "Cancel",
-                    None,
-                    None,
-                    gio::DBusCallFlags::NONE,
-                    CALL_TIMEOUT_MSEC,
-                )
-                .await
-                .and_then(|reply| {
-                    reply.get::<(bool,)>().map(|value| value.0).ok_or_else(|| {
-                        client_error(
-                            gio::IOErrorEnum::InvalidData,
-                            "Cancel returned an invalid reply",
-                        )
-                    })
-                });
-            callback(result);
-            refresh_weak(&weak);
-        });
-    }
-
-    pub fn restart_service(
-        self: &Rc<Self>,
-        expected_owner_generation: &str,
-        callback: impl FnOnce(Result<String, glib::Error>) + 'static,
-    ) {
-        let current_owner_generation = match self.compatible_owner_generation() {
-            Ok(owner_generation) => owner_generation,
-            Err(error) => {
-                callback(Err(error));
-                return;
-            }
-        };
-        if let Err(error) =
-            require_current_owner(expected_owner_generation, &current_owner_generation)
-        {
-            callback(Err(error));
-            return;
-        }
-        let Some(connection) = self
-            .manager
-            .borrow()
-            .as_ref()
-            .map(gio::DBusObjectManagerClient::connection)
-        else {
-            callback(Err(client_error(
-                gio::IOErrorEnum::NotConnected,
-                "The SoundTouch control service is offline",
-            )));
-            return;
-        };
-        let weak = Rc::downgrade(self);
-
-        glib::MainContext::default().spawn_local(async move {
-            let result = async {
-                let proxy = gio::DBusProxy::new_future(
-                    &connection,
-                    gio::DBusProxyFlags::DO_NOT_AUTO_START,
-                    None,
-                    Some(SYSTEMD_DBUS_NAME),
-                    SYSTEMD_DBUS_PATH,
-                    SYSTEMD_MANAGER_INTERFACE,
-                )
-                .await?;
-                proxy
-                    .call_future(
-                        "RestartUnit",
-                        Some(&(SERVICE_UNIT, "replace").to_variant()),
-                        gio::DBusCallFlags::NONE,
-                        CALL_TIMEOUT_MSEC,
-                    )
-                    .await
-                    .and_then(operation_path_from_reply)
-            }
-            .await;
-            callback(result);
-            refresh_weak(&weak);
-        });
-    }
-
-    fn proxy_for(&self, path: &str, interface: &str) -> Result<gio::DBusProxy, glib::Error> {
-        if path == DBUS_ROOT && interface == MANAGER_INTERFACE {
-            return self.manager_proxy.borrow().clone().ok_or_else(|| {
-                client_error(
-                    gio::IOErrorEnum::NotConnected,
-                    "The SoundTouch control service is offline",
-                )
-            });
-        }
-
-        self.manager
-            .borrow()
-            .as_ref()
-            .and_then(|manager| manager.object(path))
-            .and_then(|object| gio::prelude::DBusObjectExt::interface(&object, interface))
-            .and_then(|interface| interface.downcast::<gio::DBusProxy>().ok())
-            .ok_or_else(|| {
-                client_error(
-                    gio::IOErrorEnum::NotFound,
-                    "The selected control object no longer exists",
-                )
-            })
-    }
-
-    fn connection(&self) -> Result<gio::DBusConnection, glib::Error> {
-        self.manager
-            .borrow()
-            .as_ref()
-            .map(gio::DBusObjectManagerClient::connection)
-            .ok_or_else(|| {
-                client_error(
-                    gio::IOErrorEnum::NotConnected,
-                    "The SoundTouch control service is offline",
-                )
-            })
-    }
-
-    fn compatible_owner_generation(&self) -> Result<String, glib::Error> {
-        let manager = self.manager.borrow();
-        let manager_proxy = self.manager_proxy.borrow();
-        let (Some(manager), Some(manager_proxy)) = (manager.as_ref(), manager_proxy.as_ref())
-        else {
-            return Err(client_error(
-                gio::IOErrorEnum::NotConnected,
-                "The SoundTouch control service is offline",
-            ));
-        };
-        let current = snapshot(manager, manager_proxy);
-        match current.state {
-            ServiceState::Online => current.owner_generation.ok_or_else(|| {
-                client_error(
-                    gio::IOErrorEnum::InvalidData,
-                    "The SoundTouch control owner generation is missing",
-                )
-            }),
-            ServiceState::Offline => Err(client_error(
-                gio::IOErrorEnum::NotConnected,
-                "The SoundTouch control service is offline",
-            )),
-            ServiceState::Incompatible(_) => Err(client_error(
-                gio::IOErrorEnum::InvalidData,
-                "The SoundTouch control API is incompatible or changing owner",
-            )),
-            ServiceState::Error(message) => Err(client_error(gio::IOErrorEnum::Failed, &message)),
-        }
-    }
-
-    fn connect(self: &Rc<Self>) {
-        if self.connecting.replace(true) || self.manager.borrow().is_some() {
-            return;
-        }
-
-        self.retry_source.borrow_mut().take();
-        let weak = Rc::downgrade(self);
-
         glib::MainContext::default().spawn_local(async move {
             let result = async {
                 let manager = gio::DBusObjectManagerClient::new_for_bus_future(
                     gio::BusType::Session,
                     OBJECT_MANAGER_FLAGS,
-                    DBUS_NAME,
+                    &owner,
                     DBUS_ROOT,
                 )
                 .await?;
-                let manager_proxy = gio::DBusProxy::new_future(
+                let proxy = gio::DBusProxy::new_future(
                     &manager.connection(),
-                    MANAGER_PROXY_FLAGS,
+                    PROXY_FLAGS,
                     None,
-                    Some(DBUS_NAME),
+                    Some(&owner),
                     DBUS_ROOT,
                     MANAGER_INTERFACE,
                 )
                 .await?;
-                Ok::<_, glib::Error>((manager, manager_proxy))
+                Ok::<_, glib::Error>((manager, proxy))
             }
             .await;
 
             let Some(client) = weak.upgrade() else {
                 return;
             };
-            client.connecting.set(false);
-
+            if !client
+                .authority
+                .borrow()
+                .accepts_owner_callback(epoch, &owner)
+            {
+                return;
+            }
             match result {
-                Ok((manager, manager_proxy)) => client.install_manager(manager, manager_proxy),
-                Err(error) => {
-                    (client.on_snapshot)(ServiceSnapshot::error(error.to_string()));
-                    client.schedule_retry();
+                Ok((manager, proxy))
+                    if manager.name_owner().as_deref() == Some(owner.as_str())
+                        && proxy.name_owner().as_deref() == Some(owner.as_str()) =>
+                {
+                    client.install_pinned(epoch, manager, proxy);
+                }
+                _ => {
+                    client.manager.borrow_mut().take();
+                    client.manager_proxy.borrow_mut().take();
+                    client.emit_incompatible(epoch, None);
                 }
             }
         });
     }
 
-    fn install_manager(
+    fn install_pinned(
         self: &Rc<Self>,
+        epoch: u64,
         manager: gio::DBusObjectManagerClient,
-        manager_proxy: gio::DBusProxy,
+        proxy: gio::DBusProxy,
     ) {
-        let weak = Rc::downgrade(self);
-        manager.connect_object_added(move |_, _| refresh_weak(&weak));
+        let refresh = |weak: &Weak<Self>, callback_epoch| {
+            if let Some(client) = weak.upgrade()
+                && client.authority.borrow().accepts_epoch(callback_epoch)
+            {
+                client.schedule_refresh(callback_epoch);
+            }
+        };
 
+        let immediate_refresh = |weak: &Weak<Self>, callback_epoch| {
+            if let Some(client) = weak.upgrade()
+                && client.authority.borrow().accepts_epoch(callback_epoch)
+            {
+                client.refresh(callback_epoch);
+            }
+        };
         let weak = Rc::downgrade(self);
-        manager.connect_object_removed(move |_, _| refresh_weak(&weak));
-
+        manager.connect_object_added(move |_, _| immediate_refresh(&weak, epoch));
         let weak = Rc::downgrade(self);
-        manager.connect_interface_added(move |_, _, _| refresh_weak(&weak));
-
+        manager.connect_object_removed(move |_, _| immediate_refresh(&weak, epoch));
         let weak = Rc::downgrade(self);
-        manager.connect_interface_removed(move |_, _, _| refresh_weak(&weak));
-
+        manager.connect_interface_added(move |_, _, _| immediate_refresh(&weak, epoch));
         let weak = Rc::downgrade(self);
-        manager.connect_notify_local(Some("name-owner"), move |_, _| refresh_weak(&weak));
-
+        manager.connect_interface_removed(move |_, _, _| immediate_refresh(&weak, epoch));
         let weak = Rc::downgrade(self);
-        manager.connect_local("interface-proxy-properties-changed", false, move |_| {
-            refresh_weak(&weak);
+        manager.connect_local("interface-proxy-properties-changed", false, move |values| {
+            let revoke_now = values
+                .get(2)
+                .and_then(|value| value.get::<gio::DBusProxy>().ok())
+                .is_some_and(|proxy| receiver_change_revokes_authority(&proxy));
+            if revoke_now {
+                immediate_refresh(&weak, epoch);
+            } else {
+                refresh(&weak, epoch);
+            }
             None
         });
-
         let weak = Rc::downgrade(self);
-        manager_proxy.connect_local("g-properties-changed", false, move |_| {
-            refresh_weak(&weak);
-            None
-        });
-
-        let weak = Rc::downgrade(self);
-        manager_proxy.connect_notify_local(Some("g-name-owner"), move |_, _| {
-            refresh_weak(&weak);
-        });
-
-        let connection = manager.connection();
-        let weak = Rc::downgrade(self);
-        connection.connect_local("closed", false, move |_| {
-            if let Some(client) = weak.upgrade() {
-                if let Some(source) = client.refresh_source.borrow_mut().take() {
-                    source.remove();
-                }
-                client.manager.borrow_mut().take();
-                client.manager_proxy.borrow_mut().take();
-                (client.on_snapshot)(ServiceSnapshot::offline());
-                client.schedule_retry();
+        let changed_proxy = proxy.clone();
+        proxy.connect_local("g-properties-changed", false, move |_| {
+            if property::<u32>(&changed_proxy, "ApiVersion") != Some(SUPPORTED_API_VERSION) {
+                immediate_refresh(&weak, epoch);
+            } else {
+                refresh(&weak, epoch);
             }
             None
         });
 
-        self.manager_proxy.replace(Some(manager_proxy));
         self.manager.replace(Some(manager));
-        self.refresh();
+        self.manager_proxy.replace(Some(proxy));
+        self.refresh(epoch);
     }
 
-    fn schedule_retry(self: &Rc<Self>) {
-        if self.retry_source.borrow().is_some() {
+    fn schedule_refresh(self: &Rc<Self>, epoch: u64) {
+        if self.refresh_source.borrow().is_some() {
             return;
         }
-
         let weak = Rc::downgrade(self);
-        let source = glib::timeout_add_local_once(Duration::from_secs(2), move || {
-            if let Some(client) = weak.upgrade() {
-                client.retry_source.borrow_mut().take();
-                client.connect();
+        let source = glib::idle_add_local_once(move || {
+            if let Some(client) = weak.upgrade()
+                && client.authority.borrow().accepts_epoch(epoch)
+            {
+                client.refresh_source.borrow_mut().take();
+                client.refresh(epoch);
             }
         });
-        self.retry_source.replace(Some(source));
+        self.refresh_source.replace(Some(source));
+    }
+
+    fn refresh(&self, epoch: u64) {
+        if !self.authority.borrow().accepts_epoch(epoch) {
+            return;
+        }
+        let manager = self.manager.borrow();
+        let manager_proxy = self.manager_proxy.borrow();
+        let (Some(manager), Some(manager_proxy), Some(owner)) = (
+            manager.as_ref(),
+            manager_proxy.as_ref(),
+            self.authority.borrow().owner.clone(),
+        ) else {
+            return;
+        };
+        (self.on_snapshot)(snapshot(epoch, owner, manager, manager_proxy));
+    }
+
+    fn emit_incompatible(&self, epoch: u64, api_version: Option<u32>) {
+        (self.on_snapshot)(ServiceSnapshot {
+            owner_epoch: epoch,
+            owner: self.authority.borrow().owner.clone(),
+            state: ServiceState::Incompatible { api_version },
+            discovery_health: DiscoveryHealth::Unknown,
+            detail: String::new(),
+            receivers: Vec::new(),
+        });
     }
 }
 
-fn fresh_request_id() -> String {
-    let request_id = glib::uuid_string_random().to_string();
-    debug_assert!(glib::uuid_string_is_valid(&request_id));
-    request_id
+fn receiver_change_revokes_authority(proxy: &gio::DBusProxy) -> bool {
+    proxy.interface_name() == RECEIVER_INTERFACE
+        && property::<bool>(proxy, "ControlAvailable") != Some(true)
 }
 
-fn operation_path_from_reply(reply: glib::Variant) -> Result<String, glib::Error> {
-    reply
-        .get::<(ObjectPath,)>()
-        .map(|value| value.0.to_string())
-        .ok_or_else(|| {
-            client_error(
-                gio::IOErrorEnum::InvalidData,
-                "Mutation returned an invalid operation path",
-            )
+fn snapshot(
+    owner_epoch: u64,
+    owner: String,
+    manager: &gio::DBusObjectManagerClient,
+    manager_proxy: &gio::DBusProxy,
+) -> ServiceSnapshot {
+    let api_version = property::<u32>(manager_proxy, "ApiVersion");
+    if api_version != Some(SUPPORTED_API_VERSION) {
+        return ServiceSnapshot {
+            owner_epoch,
+            owner: Some(owner),
+            state: ServiceState::Incompatible { api_version },
+            discovery_health: DiscoveryHealth::Unknown,
+            detail: String::new(),
+            receivers: Vec::new(),
+        };
+    }
+
+    let discovery_health = property::<String>(manager_proxy, "DiscoveryHealth")
+        .as_deref()
+        .map(DiscoveryHealth::parse)
+        .unwrap_or(DiscoveryHealth::Unknown);
+    let detail = property::<String>(manager_proxy, "Detail").unwrap_or_default();
+    let mut invalid_receiver = false;
+    let mut receivers = manager
+        .objects()
+        .into_iter()
+        .filter_map(|object| {
+            let path = object.object_path().to_string();
+            let interface = gio::prelude::DBusObjectExt::interface(&object, RECEIVER_INTERFACE)?;
+            let proxy = interface.downcast::<gio::DBusProxy>().ok()?;
+            match receiver_from_proxy(path, &proxy) {
+                Some(receiver) => {
+                    invalid_receiver |= receiver.lifecycle == Lifecycle::Unknown;
+                    Some(receiver)
+                }
+                None => {
+                    invalid_receiver = true;
+                    None
+                }
+            }
         })
-}
+        .collect::<Vec<_>>();
+    receivers.sort_by(|left, right| {
+        left.display_name
+            .to_lowercase()
+            .cmp(&right.display_name.to_lowercase())
+            .then_with(|| left.device_id.cmp(&right.device_id))
+    });
 
-fn client_error(kind: gio::IOErrorEnum, message: &str) -> glib::Error {
-    glib::Error::new(kind, message)
-}
-
-fn refresh_weak(weak: &Weak<ControlClient>) {
-    if let Some(client) = weak.upgrade() {
-        client.schedule_refresh();
+    let state = if discovery_health == DiscoveryHealth::Ready && !invalid_receiver {
+        ServiceState::Ready
+    } else {
+        ServiceState::Degraded
+    };
+    ServiceSnapshot {
+        owner_epoch,
+        owner: Some(owner),
+        state,
+        discovery_health,
+        detail,
+        receivers,
     }
 }
 
-impl Drop for ControlClient {
-    fn drop(&mut self) {
-        if let Some(source) = self.refresh_source.borrow_mut().take() {
-            source.remove();
-        }
-        if let Some(source) = self.retry_source.borrow_mut().take() {
-            source.remove();
-        }
-    }
+fn receiver_from_proxy(path: String, proxy: &gio::DBusProxy) -> Option<ReceiverSnapshot> {
+    let raw_device_id = property::<String>(proxy, "DeviceId")?;
+    let device_id = normalize_device_id(&raw_device_id)?;
+    let display_name = property::<String>(proxy, "DisplayName")?;
+    let lifecycle = Lifecycle::parse(&property::<String>(proxy, "Lifecycle")?);
+    let detail = property::<String>(proxy, "Detail")?;
+    let pipewire_device_name = property::<String>(proxy, "PipeWireDeviceName")?;
+    let pipewire_node_name = property::<String>(proxy, "PipeWireNodeName")?;
+    let control_available = property::<bool>(proxy, "ControlAvailable")?;
+    let control_busy = property::<bool>(proxy, "ControlBusy")?;
+    let volume = property::<u32>(proxy, "Volume")?;
+    let muted = property::<bool>(proxy, "Muted")?;
+    let confirmed_revision = property::<u64>(proxy, "ConfirmedRevision")?;
+    let confirmed = ConfirmedTuple::new(volume, muted)?;
+    Some(ReceiverSnapshot {
+        path,
+        device_id,
+        display_name,
+        lifecycle,
+        detail,
+        pipewire_device_name,
+        pipewire_node_name,
+        control_available,
+        control_busy,
+        confirmed,
+        confirmed_revision,
+    })
+}
+
+fn property<T: glib::variant::FromVariant>(proxy: &gio::DBusProxy, name: &str) -> Option<T> {
+    proxy.cached_property(name)?.get::<T>()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const REQUEST_ID: &str = "10000000-0000-4000-8000-000000000001";
-
     #[test]
-    fn every_submission_gets_a_canonical_uuid() {
-        for _ in 0..32 {
-            let request_id = fresh_request_id();
-            assert!(glib::uuid_string_is_valid(&request_id));
-            assert_eq!(request_id, request_id.to_ascii_lowercase());
-        }
+    fn unique_owner_replacement_rejects_delayed_old_owner_callbacks() {
+        let mut lifecycle = OwnerLifecycle::default();
+        let first_epoch = lifecycle.follow(Some(":1.42".into())).unwrap();
+        assert!(lifecycle.accepts_owner_callback(first_epoch, ":1.42"));
+
+        let replacement_epoch = lifecycle.follow(Some(":1.43".into())).unwrap();
+        assert_ne!(replacement_epoch, first_epoch);
+        assert!(!lifecycle.accepts_owner_callback(first_epoch, ":1.42"));
+        assert!(!lifecycle.accepts_owner_callback(replacement_epoch, ":1.42"));
+        assert!(lifecycle.accepts_owner_callback(replacement_epoch, ":1.43"));
     }
 
     #[test]
-    fn both_proxy_layers_refuse_dbus_auto_start() {
-        assert!(
-            OBJECT_MANAGER_FLAGS.contains(gio::DBusObjectManagerClientFlags::DO_NOT_AUTO_START)
-        );
-        assert!(MANAGER_PROXY_FLAGS.contains(gio::DBusProxyFlags::DO_NOT_AUTO_START));
-    }
+    fn unique_owner_removal_rejects_delayed_old_epoch_callbacks() {
+        let mut lifecycle = OwnerLifecycle::default();
+        let owner_epoch = lifecycle.follow(Some(":1.42".into())).unwrap();
+        let absent_epoch = lifecycle.follow(None).unwrap();
 
-    #[test]
-    fn mutations_are_pinned_only_to_the_expected_current_owner() {
-        assert_eq!(
-            require_current_owner(":1.10", ":1.10").expect("matching owner"),
-            PinnedOwner(":1.10".to_owned())
-        );
-        assert!(require_current_owner(":1.10", ":1.11").is_err());
-    }
-
-    #[test]
-    fn import_uses_an_object_path_in_its_canonical_signature() {
-        let spec = Mutation::ImportTopology {
-            observed_path: "/io/github/Mr_Tao/SoundTouchPipeWire1/topologies/t_1".to_owned(),
-            name: "Imported".to_owned(),
-        }
-        .call_spec(REQUEST_ID)
-        .expect("valid import");
-
-        assert_eq!(spec.path, DBUS_ROOT);
-        assert_eq!(spec.interface, MANAGER_INTERFACE);
-        assert_eq!(spec.method, "ImportTopology");
-        assert_eq!(spec.parameters.type_().as_str(), "(sos)");
-    }
-
-    #[test]
-    fn zone_update_preserves_revision_and_canonical_member_shape() {
-        let spec = Mutation::UpdateZone {
-            path: "/io/github/Mr_Tao/SoundTouchPipeWire1/zones/z_1".to_owned(),
-            expected_revision: 42,
-            name: "Downstairs".to_owned(),
-            members: vec![LogicalMember::new("speaker", "aabbccddeeff")],
-            preferred_master: None,
-            conflict_policy: "protected".to_owned(),
-            resume_policy: "manual".to_owned(),
-            auto_heal: "enabled".to_owned(),
-        }
-        .call_spec(REQUEST_ID)
-        .expect("valid update");
-
-        assert_eq!(spec.method, "Update");
-        assert_eq!(spec.parameters.type_().as_str(), "(stsa(ss)(ss)sss)");
-        let (_, revision, _, members, preferred, _, _, _) = spec
-            .parameters
-            .get::<(
-                String,
-                u64,
-                String,
-                Vec<(String, String)>,
-                (String, String),
-                String,
-                String,
-                String,
-            )>()
-            .expect("canonical zone update parameters");
-        assert_eq!(revision, 42);
-        assert_eq!(members, [("speaker".to_owned(), "aabbccddeeff".to_owned())]);
-        assert_eq!(preferred, (String::new(), String::new()));
-    }
-
-    #[test]
-    fn every_mutation_uses_the_published_dbus_signature() {
-        let zone_path = "/io/github/Mr_Tao/SoundTouchPipeWire1/zones/z_1";
-        let pair_path = "/io/github/Mr_Tao/SoundTouchPipeWire1/pairs/p_1";
-        let member = LogicalMember::new("speaker", "aabbccddeeff");
-        let cases = vec![
-            (Mutation::Reconcile, "Reconcile", "(s)"),
-            (
-                Mutation::CreateZone {
-                    name: "Zone".to_owned(),
-                    members: vec![member.clone()],
-                    preferred_master: Some(member),
-                    conflict_policy: "inherit".to_owned(),
-                    resume_policy: "inherit".to_owned(),
-                    auto_heal: "inherit".to_owned(),
-                },
-                "CreateZone",
-                "(ssa(ss)(ss)sss)",
-            ),
-            (
-                Mutation::CreateStereoPair {
-                    name: "Pair".to_owned(),
-                    left_device_id: "aabbccddeeff".to_owned(),
-                    right_device_id: "001122334455".to_owned(),
-                },
-                "CreateStereoPair",
-                "(ssss)",
-            ),
-            (
-                Mutation::UpdateDefaults {
-                    conflict_policy: "protected".to_owned(),
-                    resume_policy: "manual".to_owned(),
-                    auto_heal: false,
-                },
-                "UpdateDefaults",
-                "(sssb)",
-            ),
-            (
-                Mutation::SetManageAllVerified {
-                    expected_digest: "sha256:digest".to_owned(),
-                    value: true,
-                },
-                "SetManageAllVerified",
-                "(ssb)",
-            ),
-            (
-                Mutation::SetDevicePolicy {
-                    expected_digest: "sha256:digest".to_owned(),
-                    device_id: "aabbccddeeff".to_owned(),
-                    mode: "allow".to_owned(),
-                },
-                "SetDevicePolicy",
-                "(ssss)",
-            ),
-            (
-                Mutation::ActivateZone {
-                    path: zone_path.to_owned(),
-                    take_over: false,
-                },
-                "Activate",
-                "(sb)",
-            ),
-            (
-                Mutation::DissolveZone {
-                    path: zone_path.to_owned(),
-                },
-                "Dissolve",
-                "(s)",
-            ),
-            (
-                Mutation::DeleteZone {
-                    path: zone_path.to_owned(),
-                    expected_revision: 3,
-                },
-                "Delete",
-                "(st)",
-            ),
-            (
-                Mutation::UpdateStereoPair {
-                    path: pair_path.to_owned(),
-                    expected_revision: 4,
-                    name: "Pair".to_owned(),
-                    left_device_id: "aabbccddeeff".to_owned(),
-                    right_device_id: "001122334455".to_owned(),
-                },
-                "Update",
-                "(stsss)",
-            ),
-            (
-                Mutation::CreateStereoPairOnHardware {
-                    path: pair_path.to_owned(),
-                    take_over: false,
-                },
-                "CreateOnHardware",
-                "(sb)",
-            ),
-            (
-                Mutation::DissolveStereoPair {
-                    path: pair_path.to_owned(),
-                },
-                "Dissolve",
-                "(s)",
-            ),
-            (
-                Mutation::DeleteStereoPair {
-                    path: pair_path.to_owned(),
-                    expected_revision: 5,
-                },
-                "Delete",
-                "(st)",
-            ),
-        ];
-
-        for (mutation, method, signature) in cases {
-            let spec = mutation.call_spec(REQUEST_ID).expect("valid call spec");
-            assert_eq!(spec.method, method);
-            assert_eq!(spec.parameters.type_().as_str(), signature);
-        }
-    }
-
-    #[test]
-    fn take_over_is_explicit_in_hardware_calls() {
-        let normal = Mutation::ActivateZone {
-            path: "/io/github/Mr_Tao/SoundTouchPipeWire1/zones/z_1".to_owned(),
-            take_over: false,
-        }
-        .call_spec(REQUEST_ID)
-        .expect("normal activation");
-        let forced = Mutation::ActivateZone {
-            path: "/io/github/Mr_Tao/SoundTouchPipeWire1/zones/z_1".to_owned(),
-            take_over: true,
-        }
-        .call_spec(REQUEST_ID)
-        .expect("take-over activation");
-
-        assert!(!normal.parameters.get::<(String, bool)>().unwrap().1);
-        assert!(forced.parameters.get::<(String, bool)>().unwrap().1);
+        assert_ne!(absent_epoch, owner_epoch);
+        assert!(!lifecycle.accepts_epoch(owner_epoch));
+        assert!(!lifecycle.accepts_owner_callback(owner_epoch, ":1.42"));
+        assert!(lifecycle.accepts_epoch(absent_epoch));
+        assert_eq!(lifecycle.owner, None);
     }
 }

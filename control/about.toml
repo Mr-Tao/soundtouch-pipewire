@@ -9,3 +9,10 @@ targets = ["x86_64-unknown-linux-gnu"]
 ignore-build-dependencies = true
 ignore-dev-dependencies = true
 private = { ignore = true }
+
+[wireplumber-sys.clarify]
+license = "MIT"
+
+[[wireplumber-sys.clarify.git]]
+path = "COPYING"
+checksum = "0501ba60a3d5faa7c3a6568e09eafcc5fc33bc4d826fa9cbe4964615f6f4a5bd"

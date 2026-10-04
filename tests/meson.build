@@ -13,6 +13,7 @@ test_specs = {
   'direct-pw-context-v2': 'test-direct-pw-context-v2.c',
   'direct-route-v2': 'test-direct-route-v2.c',
   'direct-service-v2-runtime': 'test-direct-service-v2-runtime.c',
+  'direct-status-v2': 'test-direct-status-v2.c',
   'direct-volume-v2': 'test-direct-volume-v2.c',
   'direct-volume-v2-wapi': 'test-direct-volume-v2-wapi.c',
   'direct-output-v2': 'test-direct-output-v2.c',

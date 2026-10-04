@@ -97,6 +97,9 @@ struct _StpwDirectOutputV2 {
   StpwDirectOutputV2HealthFunc health;
   gpointer health_data;
   GDestroyNotify health_destroy;
+  StpwDirectOutputV2StatusFunc status;
+  gpointer status_data;
+  GDestroyNotify status_destroy;
   gint disposing;
   gint terminal_queued;
   gint volume_epoch;
@@ -124,6 +127,8 @@ static gchar *quoted(const gchar *value) {
   if (value == NULL)
     return NULL;
   encoded_length = spa_json_encode_string(NULL, 0, value);
+  if (G_UNLIKELY(encoded_length < 0 || encoded_length >= G_MAXINT))
+    g_error("JSON-encoded PipeWire module argument exceeds SPA int capacity");
   encoded = g_malloc((gsize)encoded_length + 1);
   spa_json_encode_string(encoded, encoded_length + 1, value);
   return encoded;
@@ -564,7 +569,7 @@ static void wapi_report_cb(StpwDirectVolumeV2WapiDriver *driver,
   WeakDispatch *bridge = user_data;
   StpwDirectOutputV2 *self = g_weak_ref_get(&bridge->owner);
   PublishCommand command;
-  gint result;
+  gint result = 0;
   (void)driver;
 
   if (self == NULL)
@@ -584,7 +589,26 @@ static void wapi_report_cb(StpwDirectVolumeV2WapiDriver *driver,
       !g_atomic_int_get(&self->terminal_queued) && self->health != NULL &&
       (report->publish || report->degraded))
     self->health(self, report->degraded, self->health_data);
+  if (!g_atomic_int_get(&self->disposing) &&
+      !g_atomic_int_get(&self->terminal_queued) && report->publish &&
+      result >= 0 && self->status != NULL)
+    self->status(self, TRUE, self->status_data);
   g_object_unref(self);
+}
+
+static void wapi_busy_cb(StpwDirectVolumeV2WapiDriver *driver, gboolean busy,
+                         gpointer user_data) {
+  WeakDispatch *bridge = user_data;
+  StpwDirectOutputV2 *self = g_weak_ref_get(&bridge->owner);
+
+  (void)driver;
+  (void)busy;
+  if (self != NULL) {
+    if (!g_atomic_int_get(&self->disposing) &&
+        !g_atomic_int_get(&self->terminal_queued) && self->status != NULL)
+      self->status(self, FALSE, self->status_data);
+    g_object_unref(self);
+  }
 }
 
 static gboolean property_equal(const struct spa_dict *props, const gchar *key,
@@ -996,6 +1020,8 @@ static void stpw_direct_output_v2_dispose(GObject *object) {
   gpointer lost_data;
   GDestroyNotify health_destroy;
   gpointer health_data;
+  GDestroyNotify status_destroy;
+  gpointer status_data;
 
   if (!g_atomic_int_compare_and_exchange(&self->disposing, FALSE, TRUE)) {
     G_OBJECT_CLASS(stpw_direct_output_v2_parent_class)->dispose(object);
@@ -1037,6 +1063,13 @@ static void stpw_direct_output_v2_dispose(GObject *object) {
   self->health_destroy = NULL;
   if (health_destroy != NULL)
     health_destroy(health_data);
+  status_destroy = self->status_destroy;
+  status_data = self->status_data;
+  self->status = NULL;
+  self->status_data = NULL;
+  self->status_destroy = NULL;
+  if (status_destroy != NULL)
+    status_destroy(status_data);
   G_OBJECT_CLASS(stpw_direct_output_v2_parent_class)->dispose(object);
 }
 
@@ -1138,6 +1171,10 @@ StpwDirectOutputV2 *stpw_direct_output_v2_new_verified(
                         "cannot create direct output v2 WAPI driver");
     return NULL;
   }
+  bridge = g_new0(WeakDispatch, 1);
+  g_weak_ref_init(&bridge->owner, self);
+  stpw_direct_volume_v2_wapi_driver_set_busy_callback(
+      self->driver, wapi_busy_cb, bridge, weak_dispatch_free);
   command.self = self;
   result = pw_loop_invoke(pw_thread_loop_get_loop(thread_loop),
                           setup_route_invoke, 0, NULL, 0, true, &command);
@@ -1210,4 +1247,53 @@ void stpw_direct_output_v2_set_health_callback(
   self->health_destroy = health_destroy;
   if (old_destroy != NULL)
     old_destroy(old_data);
+}
+
+void stpw_direct_output_v2_set_status_callback(
+    StpwDirectOutputV2 *self, StpwDirectOutputV2StatusFunc status,
+    gpointer status_data, GDestroyNotify status_destroy) {
+  GDestroyNotify old_destroy;
+  gpointer old_data;
+
+  g_return_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self));
+  old_destroy = self->status_destroy;
+  old_data = self->status_data;
+  self->status = status;
+  self->status_data = status_data;
+  self->status_destroy = status_destroy;
+  if (old_destroy != NULL)
+    old_destroy(old_data);
+}
+
+const gchar *stpw_direct_output_v2_get_device_name(StpwDirectOutputV2 *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self), NULL);
+  return self->device_name;
+}
+
+const gchar *stpw_direct_output_v2_get_node_name(StpwDirectOutputV2 *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self), NULL);
+  return self->node_name;
+}
+
+guint stpw_direct_output_v2_get_volume(StpwDirectOutputV2 *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self), 0);
+  return self->actual_volume;
+}
+
+gboolean stpw_direct_output_v2_get_muted(StpwDirectOutputV2 *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self), FALSE);
+  return self->actual_muted;
+}
+
+gboolean stpw_direct_output_v2_get_control_available(
+    StpwDirectOutputV2 *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self), FALSE);
+  return self->ready && !g_atomic_int_get(&self->disposing) &&
+         !g_atomic_int_get(&self->terminal_queued) && self->route != NULL;
+}
+
+gboolean stpw_direct_output_v2_get_control_busy(StpwDirectOutputV2 *self) {
+  g_return_val_if_fail(STPW_IS_DIRECT_OUTPUT_V2(self), FALSE);
+  return self->driver != NULL &&
+         stpw_direct_volume_v2_wapi_driver_is_busy(self->driver);
 }

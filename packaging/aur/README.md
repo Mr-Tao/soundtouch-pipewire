@@ -1,6 +1,9 @@
 # Arch/AUR packaging
 
-Status: **validated release candidate for v0.1.0 publication**.
+Status: **v0.1.1 release candidate**. The unchanged v2 behavior has the
+recorded pkgrel-67 desktop acceptance; pkgrel 68 passed the complete GitHub
+Arch build with stock PipeWire 1.6.9. The versioned release must pass CI before
+its immutable source archive and AUR metadata are published.
 
 The split package coexists with the official Arch packages. Both binary
 packages have empty `provides`, `conflicts`, and `replaces` arrays and do not
@@ -14,6 +17,7 @@ frozen v1 command for rollback/debugging, and audio integration:
 
 - `/usr/bin/soundtouch-pipewire`
 - `/usr/share/dbus-1/interfaces/io.github.Mr_Tao.SoundTouchPipeWire1.xml`
+- `/usr/share/dbus-1/interfaces/io.github.Mr_Tao.SoundTouchPipeWire2.xml`
 - `/usr/lib/soundtouch-pipewire/pipewire-0.3/libpipewire-module-soundtouch-raop-sink.so`
 - `/usr/lib/soundtouch-pipewire/pipewire-0.3/libpipewire-module-soundtouch-zone-sink.so`
 - `/usr/lib/systemd/user/soundtouch-pipewire.service`
@@ -21,8 +25,9 @@ frozen v1 command for rollback/debugging, and audio integration:
 - `/usr/share/licenses/soundtouch-pipewire/`
 
 `soundtouch-pipewire-control` depends on that exact service package revision
-and contains the frozen optional GTK controller for the v1 D-Bus control plane.
-It is not a controller for the installed `service-v2` process:
+and contains the v2 GTK StatusNotifierItem client. It reads the service's
+read-only status API and submits explicit volume/mute changes only through the
+matching standard PipeWire Device Route:
 
 - `/usr/bin/soundtouch-pipewire-control`
 - `/usr/share/applications/io.github.Mr_Tao.SoundTouchPipeWire.Control.desktop`
@@ -30,6 +35,7 @@ It is not a controller for the installed `service-v2` process:
 - `/usr/share/icons/hicolor/scalable/apps/io.github.Mr_Tao.SoundTouchPipeWire.Control.svg`
 - `/usr/share/locale/cs/LC_MESSAGES/soundtouch-pipewire-control.mo`
 - `/usr/share/licenses/soundtouch-pipewire-control/`
+- `/etc/xdg/autostart/io.github.Mr_Tao.SoundTouchPipeWire.Control-autostart.desktop`
 
 The user unit sets `PIPEWIRE_MODULE_DIR` only for the companion process:
 
@@ -79,6 +85,16 @@ PipeWire 1.6.8 a reentrant empty Props write technically vetoes them before the
 adapter can apply the outer Pod, while unrelated Props return untouched. A
 failed apply fails the local stream closed. Contracts 3 and 5 and other
 volume-control modes remain unchanged.
+The private PipeWire module source remains pinned to 1.6.8. Runtime, build,
+and test dependencies accept stock PipeWire versions from 1.6.8 up to, but
+excluding, 1.7 (Arch epoch 1). The build guard checks this compatibility range
+independently of the source archive version. PipeWire 1.6.9 was verified with
+the pkgrel-67 modules in the existing isolated Route and stream tests; later
+1.6.x releases rely on the upstream series ABI policy and rolling Arch CI,
+not individual hardware acceptance. Extending the range requires revalidation.
+Updating the stock runtime does not backport upstream RAOP fixes into the
+private module; that remains a separate source update.
+
 The runtime requires WirePlumber 0.5.15 or newer; the isolated policy test
 verifies save/restore across Device removal and republication in one
 WirePlumber process. Contracts 3 and 5 reject a separate AES67 sender loop.
@@ -101,6 +117,20 @@ instead of silently reaching the network. The environment override permits a
 local release-candidate build while the explicit public-release gate remains
 closed.
 
+## Continuous integration
+
+The GitHub Actions workflow builds both split packages on rolling Arch for
+pushes, pull requests, manual runs, and a weekly compatibility check. It uses
+an unprivileged builder and the existing package `check()` path: companion
+tests, isolated PipeWire/WirePlumber Route and stream tests, seven private
+module tests, locked Rust tests, formatting, Clippy, and desktop/AppStream
+validation. It also checks the release gate and rejects stale source checksums
+or `.SRCINFO` after generating the canonical source archive. Commit source
+changes first, run `prepare-local-source.sh`, and commit its metadata updates.
+No household speakers or desktop user services are used. A green CI result
+does not establish physical-speaker acceptance or verify the published release
+asset; publication still requires the release checklist.
+
 The package `check()` function runs every Meson suite through
 `tools/run-meson-tests-clean-env.sh`. The helper starts Meson with an
 allowlisted environment and private temporary HOME and XDG directories because
@@ -120,13 +150,13 @@ Before installing, inspect the package:
 
 ```sh
 pacman -Qip \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-64-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.1-1-x86_64.pkg.tar.zst
 namcap PKGBUILD \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-debug-0.1.0-64-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-debug-0.1.1-1-x86_64.pkg.tar.zst
 ```
 
 Confirm that `Provides`, `Conflicts With`, and `Replaces` are all `None` and
@@ -219,14 +249,16 @@ latency, not volume authority.
 systemctl --user enable --now soundtouch-pipewire.service
 ```
 
-The optional controller package is retained only for frozen v1 development.
-When `service-v2` is active, its expected “daemon is not running” warning does
-not indicate a failure of the audio service.
+The optional desktop package starts its indicator through XDG autostart. Close
+hides its window; **Quit** exits only the client. It does not activate, stop, or
+restart the backend over D-Bus. To disable autostart for one user, place a
+same-named desktop file with `Hidden=true` in that user's XDG autostart
+directory.
 
 ```sh
 sudo pacman -U \
-  ./soundtouch-pipewire-0.1.0-64-x86_64.pkg.tar.zst \
-  ./soundtouch-pipewire-control-0.1.0-64-x86_64.pkg.tar.zst
+  ./soundtouch-pipewire-0.1.1-1-x86_64.pkg.tar.zst \
+  ./soundtouch-pipewire-control-0.1.1-1-x86_64.pkg.tar.zst
 soundtouch-pipewire-control
 ```
 

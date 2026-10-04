@@ -3445,8 +3445,8 @@ static void test_private_node_lifecycle_integration(void) {
     {
       StpwPipeWireRouteObservationToken companion_before = {0};
       StpwPipeWireRouteObservationToken companion_after = {0};
-      StpwPipeWireSafetyGate gate_before;
-      StpwPipeWireSafetyGate gate_after;
+      StpwPipeWireSafetyGate gate_before = {0};
+      StpwPipeWireSafetyGate gate_after = {0};
       StpwPipeWireProps canonical = {0};
       gint companion_route_callbacks =
           g_atomic_int_get(&observations.route_callbacks);
