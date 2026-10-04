@@ -92,7 +92,7 @@ source=(
   'soundtouch-pipewire.service'
   'soundtouch-pipewire.conf.example'
 )
-sha256sums=('ec7201670dfea545dd40ab53d2d8ea290a0cb35f48529a32b3d60c72e40e49d1'
+sha256sums=('19c540ff80df773dbde9bdd2a0370e13560842e218168c381ab2bdba9edf32d4'
             '8181172a1d95131f6af8bbc0b98f90b2a33349b042b84c3ce57dd5d11348cc58'
             '4dd5fbf8ae0853866a9c88c8c86ae96b53347c998c9aa564bd92051cc3227120'
             '484fad982e6e8ae850cf69d19868739933d2662c51fd213b8552f2698d932c18'
