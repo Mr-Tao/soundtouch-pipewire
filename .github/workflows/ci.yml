@@ -24,7 +24,7 @@ jobs:
       - name: Install build and test dependencies
         run: >-
           pacman -Syu --noconfirm --needed
-          git ca-certificates pacman-contrib cargo-about
+          git ca-certificates pacman-contrib cargo-about namcap
           avahi clang gettext glib2 glib2-devel gtk4 json-glib
           libpipewire libsoup3 libxml2 meson ninja openssl opus patchelf
           pipewire pipewire-audio pipewire-pulse pkgconf rust libwireplumber
@@ -54,4 +54,17 @@ jobs:
             git diff --exit-code -- PKGBUILD .SRCINFO
             ./check-release-gate.sh
             makepkg --cleanbuild --force --noconfirm --log
+            for package in ./*.pkg.tar.zst; do
+              pacman -Qip "$package"
+              bsdtar -tf "$package"
+            done
+            namcap PKGBUILD ./*.pkg.tar.zst
+            readelf -d pkg/*/usr/bin/* \
+              pkg/*/usr/lib/soundtouch-pipewire/pipewire-0.3/*.so \
+              > /tmp/package-dynamic-tags.txt
+            cat /tmp/package-dynamic-tags.txt
+            if grep -Eq "\((RPATH|RUNPATH)\)" /tmp/package-dynamic-tags.txt; then
+              echo "Unexpected packaged RPATH/RUNPATH" >&2
+              exit 1
+            fi
           ' bash "$GITHUB_WORKSPACE"
